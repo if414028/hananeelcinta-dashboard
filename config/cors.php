@@ -12,7 +12,7 @@ return [
     'allowed_methods' => ['*'],
     'allowed_origins' => array_values($origins),
     'allowed_origins_patterns' => [],
-    'allowed_headers' => ['Accept', 'Authorization', 'Content-Type', 'Origin', 'X-Requested-With'],
+    'allowed_headers' => ['Accept', 'Authorization', 'Content-Type', 'Origin', 'X-App-Platform', 'X-App-Version', 'X-Request-Id', 'X-Requested-With'],
     'exposed_headers' => ['X-Request-Id'],
     'max_age' => 3600,
     'supports_credentials' => false,

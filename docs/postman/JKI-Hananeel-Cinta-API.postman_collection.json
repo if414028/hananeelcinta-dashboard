@@ -1,0 +1,395 @@
+{
+  "info": {
+    "_postman_id": "f7cb3d7e-1dfa-48e6-8689-8c09a4c6fd36",
+    "name": "JKI Hananeel Cinta API v1",
+    "description": "Collection resmi REST API v1. Isi firebase_id_token dengan Firebase ID token aktif untuk folder Mobile Auth.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "firebase_id_token",
+      "value": "",
+      "type": "secret"
+    },
+    {
+      "key": "announcement_slug",
+      "value": "contoh-pengumuman",
+      "type": "string"
+    },
+    {
+      "key": "pastor_message_slug",
+      "value": "contoh-pastor-message",
+      "type": "string"
+    },
+    {
+      "key": "family_altar_id",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "noauth"
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.test('Response is JSON', function () {",
+          "  pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json');",
+          "});",
+          "pm.test('Request ID is present', function () {",
+          "  pm.expect(pm.response.headers.get('X-Request-Id')).to.be.ok;",
+          "});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Public",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Config",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/config",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "config"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Home",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/home",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "home"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Announcements",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/announcements?per_page=15&featured=true",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "announcements"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15"
+                },
+                {
+                  "key": "featured",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Announcement Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/announcements/{{announcement_slug}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "announcements",
+                "{{announcement_slug}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pastor Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pastor-messages?per_page=15",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pastor-messages"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pastor Message Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/pastor-messages/{{pastor_message_slug}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "pastor-messages",
+                "{{pastor_message_slug}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Family Altars",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/family-altars?per_page=15&day=sunday",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "family-altars"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "15"
+                },
+                {
+                  "key": "day",
+                  "value": "sunday"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Family Altar Detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/family-altars/{{family_altar_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "family-altars",
+                "{{family_altar_id}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Submit Prayer Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-App-Platform",
+                "value": "android"
+              },
+              {
+                "key": "X-App-Version",
+                "value": "1.0.0"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pengguna Mobile\",\n  \"email\": \"user@example.com\",\n  \"phone_number\": \"+628123456789\",\n  \"prayer_category\": \"other\",\n  \"prayer_content\": \"Mohon dukungan doa untuk keluarga kami.\",\n  \"is_anonymous\": false,\n  \"is_confidential\": true,\n  \"privacy_accepted\": true,\n  \"client_platform\": \"android\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/prayer-requests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "prayer-requests"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mobile Auth",
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{firebase_id_token}}",
+            "type": "string"
+          }
+        ]
+      },
+      "item": [
+        {
+          "name": "Create Firebase Session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-App-Platform",
+                "value": "android"
+              },
+              {
+                "key": "X-App-Version",
+                "value": "1.0.0"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/session",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "auth",
+                "session"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Current Mobile Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "X-App-Platform",
+                "value": "android"
+              },
+              {
+                "key": "X-App-Version",
+                "value": "1.0.0"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "me"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

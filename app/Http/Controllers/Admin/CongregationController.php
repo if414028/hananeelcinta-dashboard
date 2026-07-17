@@ -17,6 +17,7 @@ use App\Services\ImageUploadService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -52,7 +53,50 @@ final class CongregationController extends Controller
 
     public function show(Congregation $congregation): View
     {
-        return view('admin.resources.show', ['title' => 'Detail Jemaat', 'routeBase' => 'admin.congregations', 'item' => $congregation, 'details' => ['Nomor anggota' => $congregation->member_number, 'Nama lengkap' => $congregation->full_name, 'Nama panggilan' => $congregation->nickname, 'Gender' => $congregation->gender->label(), 'Email' => $congregation->email, 'Telepon' => $congregation->phone_number, 'WhatsApp' => $congregation->whatsapp_number, 'Status keanggotaan' => $congregation->membership_status->label(), 'Tanggal bergabung' => $congregation->joined_at?->format('d M Y'), 'Alamat' => $congregation->address]]);
+        $initials = Str::of($congregation->full_name)->explode(' ')->filter()->take(2)->map(fn (string $part): string => Str::upper(Str::substr($part, 0, 1)))->implode('');
+
+        return view('admin.resources.show', [
+            'title' => 'Detail Jemaat',
+            'routeBase' => 'admin.congregations',
+            'item' => $congregation,
+            'profile' => [
+                'name' => $congregation->full_name,
+                'meta' => $congregation->member_number.' · '.$congregation->membership_status->label(),
+                'status' => $congregation->is_active ? 'Aktif' : 'Tidak aktif',
+                'initials' => $initials,
+                'photo_url' => $congregation->profilePhotoUrl(),
+            ],
+            'detailSections' => [
+                'Identitas' => [
+                    ['label' => 'Nomor anggota', 'value' => $congregation->member_number],
+                    ['label' => 'Nama lengkap', 'value' => $congregation->full_name],
+                    ['label' => 'Nama panggilan', 'value' => $congregation->nickname],
+                    ['label' => 'Gender', 'value' => $congregation->gender->label()],
+                    ['label' => 'Tempat lahir', 'value' => $congregation->place_of_birth],
+                    ['label' => 'Tanggal lahir', 'value' => $congregation->date_of_birth?->format('d M Y')],
+                    ['label' => 'Status pernikahan', 'value' => $congregation->marital_status?->label()],
+                    ['label' => 'Firebase UID', 'value' => $congregation->legacy_firebase_uid],
+                ],
+                'Kontak & Domisili' => [
+                    ['label' => 'Email', 'value' => $congregation->email],
+                    ['label' => 'Telepon', 'value' => $congregation->phone_number],
+                    ['label' => 'WhatsApp', 'value' => $congregation->whatsapp_number],
+                    ['label' => 'Alamat', 'value' => $congregation->address, 'wide' => true],
+                    ['label' => 'Kota', 'value' => $congregation->city],
+                    ['label' => 'Provinsi', 'value' => $congregation->province],
+                    ['label' => 'Kode pos', 'value' => $congregation->postal_code],
+                ],
+                'Keanggotaan & Pelayanan' => [
+                    ['label' => 'Pekerjaan', 'value' => $congregation->occupation],
+                    ['label' => 'Status baptis', 'value' => $congregation->baptism_status->label()],
+                    ['label' => 'Tanggal baptis', 'value' => $congregation->baptism_date?->format('d M Y')],
+                    ['label' => 'Status keanggotaan', 'value' => $congregation->membership_status->label()],
+                    ['label' => 'Tanggal bergabung', 'value' => $congregation->joined_at?->format('d M Y')],
+                    ['label' => 'Status data', 'value' => $congregation->is_active ? 'Aktif' : 'Tidak aktif'],
+                ],
+                'Data Firebase' => $this->firebaseNoteDetails($congregation->notes),
+            ],
+        ]);
     }
 
     public function edit(Congregation $congregation): View
@@ -91,6 +135,24 @@ final class CongregationController extends Controller
 
     private function form(Congregation $item, string $title): View
     {
-        return view('admin.resources.form', ['title' => $title, 'routeBase' => 'admin.congregations', 'item' => $item, 'fields' => [['name' => 'full_name', 'label' => 'Nama lengkap', 'required' => true], ['name' => 'nickname', 'label' => 'Nama panggilan'], ['name' => 'gender', 'label' => 'Gender', 'type' => 'select', 'options' => CongregationGender::options()], ['name' => 'place_of_birth', 'label' => 'Tempat lahir'], ['name' => 'date_of_birth', 'label' => 'Tanggal lahir', 'type' => 'date'], ['name' => 'marital_status', 'label' => 'Status pernikahan', 'type' => 'select', 'options' => CongregationMaritalStatus::options()], ['name' => 'phone_number', 'label' => 'Telepon'], ['name' => 'whatsapp_number', 'label' => 'WhatsApp'], ['name' => 'email', 'label' => 'Email', 'type' => 'email'], ['name' => 'address', 'label' => 'Alamat', 'type' => 'textarea'], ['name' => 'city', 'label' => 'Kota'], ['name' => 'province', 'label' => 'Provinsi'], ['name' => 'postal_code', 'label' => 'Kode pos'], ['name' => 'occupation', 'label' => 'Pekerjaan'], ['name' => 'baptism_status', 'label' => 'Status baptis', 'type' => 'select', 'options' => BaptismStatus::options()], ['name' => 'baptism_date', 'label' => 'Tanggal baptis', 'type' => 'date'], ['name' => 'membership_status', 'label' => 'Status keanggotaan', 'type' => 'select', 'options' => CongregationMembershipStatus::options()], ['name' => 'joined_at', 'label' => 'Tanggal bergabung', 'type' => 'date'], ['name' => 'notes', 'label' => 'Catatan', 'type' => 'textarea'], ['name' => 'profile_photo', 'label' => 'Foto profil', 'type' => 'file'], ['name' => 'is_active', 'label' => 'Jemaat aktif', 'type' => 'checkbox', 'value' => $item->exists ? $item->is_active : true]]]);
+        return view('admin.resources.form', ['title' => $title, 'routeBase' => 'admin.congregations', 'item' => $item, 'fields' => [['name' => 'full_name', 'label' => 'Nama lengkap', 'required' => true], ['name' => 'nickname', 'label' => 'Nama panggilan'], ['name' => 'gender', 'label' => 'Gender', 'type' => 'select', 'options' => CongregationGender::options()], ['name' => 'place_of_birth', 'label' => 'Tempat lahir'], ['name' => 'date_of_birth', 'label' => 'Tanggal lahir', 'type' => 'date'], ['name' => 'marital_status', 'label' => 'Status pernikahan', 'type' => 'select', 'options' => CongregationMaritalStatus::options()], ['name' => 'phone_number', 'label' => 'Telepon'], ['name' => 'whatsapp_number', 'label' => 'WhatsApp'], ['name' => 'email', 'label' => 'Email', 'type' => 'email'], ['name' => 'address', 'label' => 'Alamat', 'type' => 'textarea'], ['name' => 'city', 'label' => 'Kota'], ['name' => 'province', 'label' => 'Provinsi'], ['name' => 'postal_code', 'label' => 'Kode pos'], ['name' => 'occupation', 'label' => 'Pekerjaan'], ['name' => 'baptism_status', 'label' => 'Status baptis', 'type' => 'select', 'options' => BaptismStatus::options()], ['name' => 'baptism_date', 'label' => 'Tanggal baptis', 'type' => 'date'], ['name' => 'membership_status', 'label' => 'Status keanggotaan', 'type' => 'select', 'options' => CongregationMembershipStatus::options()], ['name' => 'joined_at', 'label' => 'Tanggal bergabung', 'type' => 'date'], ['name' => 'notes', 'label' => 'Catatan', 'type' => 'textarea'], ['name' => 'profile_photo', 'label' => 'Foto profil', 'type' => 'file', 'preview_url' => $item->exists ? $item->profilePhotoUrl() : null], ['name' => 'is_active', 'label' => 'Jemaat aktif', 'type' => 'checkbox', 'value' => $item->exists ? $item->is_active : true]]]);
+    }
+
+    /** @return list<array{label:string,value:?string,wide?:bool}> */
+    private function firebaseNoteDetails(?string $notes): array
+    {
+        if (! $notes) {
+            return [['label' => 'Catatan', 'value' => null, 'wide' => true]];
+        }
+
+        return collect(preg_split('/\R/u', $notes) ?: [])
+            ->filter()
+            ->map(function (string $line): array {
+                [$label, $value] = array_pad(explode(':', $line, 2), 2, null);
+
+                return ['label' => trim($label), 'value' => $value === null ? null : trim($value)];
+            })
+            ->values()
+            ->all();
     }
 }

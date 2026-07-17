@@ -9,25 +9,61 @@
     --color-canvas: #f3f0ee;
     --color-lifted: #fcfbfa;
     --color-ink: #141413;
+    /* Primitive brand token → semantic primary */
+    --color-crimson-700: #851226;
+    --color-primary: var(--color-crimson-700);
     --color-signal: #cf4500;
     --color-signal-light: #f37338;
     --color-slate: #696969;
+    --color-bone: #e8e2da;
+    --color-clay: #9a3a0a;
+    --color-link: #3860be;
 }
 
 @layer base {
     [x-cloak] { display: none !important; }
-    html { @apply scroll-smooth; }
-    body { @apply bg-canvas text-ink antialiased; font-weight: 450; }
+    html { @apply scroll-smooth; color-scheme: light; }
+    body { @apply min-w-80 bg-canvas text-ink antialiased; font-weight: 450; }
     h1, h2, h3 { @apply tracking-[-0.02em]; font-weight: 500; }
-    :focus-visible { @apply outline-2 outline-offset-2 outline-signal; }
+    a, button, input, select, textarea { @apply transition duration-200; }
+    button, select, summary, [role='button'] { @apply cursor-pointer; }
+    button:disabled, select:disabled { @apply cursor-not-allowed; }
+    :focus-visible { @apply outline-3 outline-offset-3 outline-primary; }
+    ::selection { @apply bg-signal text-white; }
+    input[type='checkbox'], input[type='radio'] { accent-color: var(--color-ink); }
 }
 
 @layer components {
-    .page-container { @apply mx-auto w-full max-w-7xl px-6 lg:px-12; }
-    .floating-nav { @apply rounded-full bg-white px-5 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)] lg:px-8; }
+    .page-container { @apply mx-auto w-full max-w-7xl px-5 sm:px-6 lg:px-12; }
+    .floating-nav { @apply rounded-full border border-white/70 bg-white/95 px-4 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.05)] backdrop-blur-xl lg:px-7; }
+    .eyebrow { @apply text-xs font-bold uppercase tracking-[0.04em] text-slate sm:text-sm; }
+    .eyebrow::before { content: '•'; @apply mr-2 text-signal-light; }
+    .button-primary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[20px] border-[1.5px] border-primary bg-primary px-6 py-2 font-medium tracking-[-0.02em] text-canvas hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(133,18,38,.22)] active:translate-y-0 active:scale-[.98]; }
+    .button-secondary { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-[20px] border-[1.5px] border-primary bg-white px-6 py-2 font-medium tracking-[-0.02em] text-primary hover:-translate-y-0.5 hover:bg-lifted active:translate-y-0 active:scale-[.98]; }
+    .text-link { @apply inline-flex min-h-11 items-center gap-2 rounded-[20px] px-1 font-medium underline decoration-ink/25 underline-offset-4 hover:decoration-ink; }
+    .nav-link { @apply relative inline-flex min-h-11 items-center rounded-full px-3 font-medium text-ink/70 hover:bg-canvas hover:text-ink; }
+    .nav-link-active { @apply bg-canvas text-ink; }
+    .nav-link-active::after { content: ''; @apply absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-signal-light; }
+    .admin-shell { @apply mx-auto grid min-h-screen w-full max-w-[100rem] lg:grid-cols-[17rem_minmax(0,1fr)]; }
+    .admin-sidebar { @apply fixed inset-y-0 left-0 z-40 w-[min(18rem,calc(100vw-2rem))] -translate-x-full overflow-y-auto border-r border-white/10 bg-primary p-5 text-white shadow-[0_24px_48px_rgba(0,0,0,.18)] transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:w-auto lg:translate-x-0 lg:shadow-none; }
+    .admin-nav-link { @apply flex min-h-11 items-center gap-3 rounded-[20px] px-4 py-2.5 text-sm text-white/68 hover:bg-white/10 hover:text-white; }
+    .admin-nav-link-active { @apply bg-white text-ink hover:bg-white hover:text-ink; }
+    .admin-nav-icon { @apply h-5 w-5 shrink-0; }
+    .admin-content { @apply min-w-0 px-5 pb-12 pt-6 sm:px-8 lg:px-10 lg:pb-16 lg:pt-8 xl:px-14; }
+    .admin-surface { @apply rounded-[40px] border border-ink/8 bg-lifted shadow-[0_24px_48px_rgba(0,0,0,0.045)]; }
+    .auth-shell { @apply grid min-h-screen; }
+    .auth-visual { @apply hidden; }
     .admin-table { @apply w-full text-left text-sm; }
-    .admin-table th { @apply border-b border-ink/15 px-4 py-3 text-xs font-bold uppercase tracking-[0.04em] text-slate; }
-    .admin-table td { @apply border-b border-ink/10 px-4 py-4; }
+    .admin-table th { @apply bg-canvas/65 px-5 py-3.5 text-xs font-bold uppercase tracking-[0.04em] text-slate; }
+    .admin-table td { @apply border-b border-ink/8 px-5 py-4 align-top; }
+    .admin-table tbody tr { @apply transition-colors hover:bg-white/70; }
+    .admin-table tbody tr:last-child td { @apply border-b-0; }
+    .form-control { @apply min-h-12 w-full rounded-[20px] border border-ink/25 bg-white px-5 py-3 text-ink shadow-[inset_0_1px_0_rgba(255,255,255,.6)] placeholder:text-slate/70 hover:border-primary/60 focus:border-primary focus:outline-none focus:ring-3 focus:ring-primary/20 disabled:bg-ink/5 disabled:text-slate; }
+    .form-control[aria-invalid='true'] { @apply border-signal ring-3 ring-signal/15; }
+    .orbital-stage { @apply relative isolate overflow-hidden rounded-[40px] bg-primary text-canvas; }
+    .orbital-stage::before { content: ''; @apply pointer-events-none absolute -right-24 -top-20 h-80 w-80 rounded-full border border-signal-light/55; }
+    .orbital-stage::after { content: ''; @apply pointer-events-none absolute -bottom-40 right-16 h-96 w-96 rounded-full border border-signal-light/25; }
+    .satellite-link { @apply grid h-12 w-12 place-items-center rounded-full bg-white text-ink shadow-[0_8px_24px_rgba(0,0,0,.12)] transition-transform duration-200 hover:rotate-[-8deg] hover:scale-105 active:scale-95; }
     .prose-public { @apply text-lg leading-8 text-ink/80; }
     .prose-public h2 { @apply mb-4 mt-10 text-3xl text-ink; }
     .prose-public h3 { @apply mb-3 mt-8 text-2xl text-ink; }
@@ -35,4 +71,14 @@
     .prose-public ul { @apply mb-6 list-disc space-y-2 pl-6; }
     .prose-public ol { @apply mb-6 list-decimal space-y-2 pl-6; }
     .prose-public blockquote { @apply my-8 border-l-2 border-signal-light pl-6 text-2xl text-ink; }
+}
+
+@media (min-width: 64rem) {
+    .auth-shell { grid-template-columns: minmax(0, 1.05fr) minmax(28rem, .95fr); }
+    .auth-visual { display: flex; min-height: calc(100vh - 2rem); margin: 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: 0.01ms !important; }
 }

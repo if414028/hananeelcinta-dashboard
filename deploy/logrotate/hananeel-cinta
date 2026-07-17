@@ -1,0 +1,14 @@
+/var/www/hananeel-cinta/current/storage/logs/*.log
+/var/log/supervisor/hananeel-cinta-worker.log {
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 0640 www-data adm
+    sharedscripts
+    postrotate
+        supervisorctl signal USR2 hananeel-cinta-worker:* >/dev/null 2>&1 || true
+    endscript
+}

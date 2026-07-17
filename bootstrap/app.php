@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\AttachRequestId;
+use App\Http\Middleware\AuthenticateFirebaseMobile;
 use App\Http\Middleware\EnsureUserIsActive;
 use App\Support\ApiResponse;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -29,15 +31,21 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->redirectGuestsTo(fn () => route('admin.login'));
+        $middleware->redirectUsersTo(fn () => route('admin.dashboard'));
+
         $middleware->alias([
             'active' => EnsureUserIsActive::class,
+            'auth.firebase' => AuthenticateFirebaseMobile::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
         ]);
 
         $middleware->statefulApi();
+        $middleware->appendToGroup('web', AddSecurityHeaders::class);
         $middleware->appendToGroup('api', AttachRequestId::class);
+        $middleware->appendToGroup('api', AddSecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -6,7 +6,9 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Tests\TestCase;
 
 final class AdminAuthenticationTest extends TestCase
@@ -81,5 +83,26 @@ final class AdminAuthenticationTest extends TestCase
             'email' => $user->email,
             'password' => 'incorrect',
         ])->assertTooManyRequests();
+    }
+
+    public function test_guest_is_redirected_to_admin_login_instead_of_server_error(): void
+    {
+        $this->get(route('admin.dashboard'))->assertRedirect(route('admin.login'));
+    }
+
+    public function test_forgot_password_notification_uses_admin_reset_route(): void
+    {
+        Notification::fake();
+        $user = User::factory()->create();
+
+        $this->post(route('admin.password.email'), ['email' => $user->email])
+            ->assertSessionHas('success');
+
+        Notification::assertSentTo($user, ResetPassword::class, function (ResetPassword $notification) use ($user): bool {
+            $mail = $notification->toMail($user);
+
+            return str_contains((string) $mail->actionUrl, '/admin/reset-password/')
+                && str_contains((string) $mail->actionUrl, urlencode($user->email));
+        });
     }
 }

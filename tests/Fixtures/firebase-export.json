@@ -1,0 +1,32 @@
+{
+  "announcements": {
+    "sample-announcement": {
+      "title": "Join Our Media Team",
+      "desc": "Contoh data announcement Firebase.",
+      "date": 1697045968836,
+      "imageUrl": "https://firebasestorage.googleapis.com/example/announcement.webp",
+      "contactPerson": "+6281234567890",
+      "contactPersonName": "Media Team",
+      "infoUrl": "https://example.com/media-team"
+    }
+  },
+  "mk": [
+    null,
+    {
+      "contact": "+62 813 17183 119",
+      "day": "Selasa",
+      "desc": "Bapak - Bapak",
+      "location": "Hancin",
+      "pic": "Pak Rendi",
+      "time": "17:30 WIB"
+    }
+  ],
+  "pastorMessages": {
+    "sample-message": {
+      "title": "Judul Renungan",
+      "messages": "<p>Contoh isi renungan Firebase.</p>",
+      "writer": "Gembala",
+      "date": 1708821850815
+    }
+  }
+}

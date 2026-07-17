@@ -1,4 +1,4 @@
-# Design System Inspired by Mastercard
+# JKI Hananeel Cinta Design System — Inspired by Mastercard
 
 ## 1. Visual Theme & Atmosphere
 
@@ -6,24 +6,25 @@ Mastercard's experience reads like a warm, editorial magazine built from soft st
 
 The second gesture is **orbit and trajectory**. Circular image masks don't sit still — they're connected by thin, hand-drawn-feeling orange arcs that span entire viewport widths, implying a constellation of services rather than a list. Each circle has a small attached "satellite" — a white micro-CTA holding an arrow icon — docked onto its perimeter like a moon. This is the most distinctive thing about Mastercard's current design language: the circles feel like they're in motion even though the page is still.
 
-Typography is rendered entirely in **MarkForMC**, Mastercard's proprietary geometric sans. Headlines are set at a medium weight (500) with tight negative letter-spacing (-2%), giving them confidence without shouting. Body copy runs at the same family in a slightly lighter weight (450) — a weight you rarely see on the web, chosen because it reads softer than regular 400 without feeling thin. The whole system — warm cream surfaces, pill shapes, circular portraits, traced-orange orbits, black CTAs — feels simultaneously institutional (a 60-year-old payments network) and editorial (a modern brand magazine), which is exactly the tension Mastercard wants to hold.
+Typography is rendered entirely in **MarkForMC**, Mastercard's proprietary geometric sans. Headlines are set at a medium weight (500) with tight negative letter-spacing (-2%), giving them confidence without shouting. Body copy runs at the same family in a slightly lighter weight (450) — a weight you rarely see on the web, chosen because it reads softer than regular 400 without feeling thin. The whole system — warm cream surfaces, pill shapes, circular portraits, traced-orange orbits, Hananeel Crimson CTAs — feels simultaneously institutional (a 60-year-old payments network) and editorial (a modern brand magazine), which is exactly the tension Mastercard wants to hold.
 
 **Key Characteristics:**
 - Warm cream canvas (`#F3F0EE`) replaces traditional white — every surface is tinted, never sterile
 - Extreme border-radius as design language: 40px, 99px, 1000px dominate; anything square is a cookie-banner third-party
 - Circular image portraits with attached white satellite-CTAs and traced-orange orbital paths
 - Ghost "watermark" headlines (cream-on-cream text at heading scale) layered behind circle portraits
-- Black primary CTAs with 20px radius in the body — the cookie-banner orange is kept to consent flows
+- Hananeel Crimson primary CTAs (`#851226`) with 20px radius in the body — the cookie-banner orange is kept to consent flows
 - Floating pill-shaped navigation that docks below the viewport top with rounded shoulders
 - Eyebrow labels with a tiny accent dot + uppercase bold tracking — used as the section-category signal
-- Dark warm-black footer (`#141413`) with four-column link layout and large conversational headline
+- Hananeel Crimson footer (`#851226`) with four-column link layout and large conversational headline
 
 ## 2. Color Palette & Roles
 
 ### Primary
 - **Mastercard Red** (`#EB001B`): The left circle of the Mastercard mark — used only in the brand logo, never as a UI color.
 - **Mastercard Yellow** (`#F79E1B`): The right circle of the Mastercard mark — used only in the brand logo, never as a UI color.
-- **Ink Black** (`#141413`): The warm near-black used for primary CTAs, headline text on cream, and the footer surface. Slightly warm (the `13` blue value pulls toward the cream) so it never feels jet-black on the warm canvas.
+- **Hananeel Crimson** (`#851226`): The primary brand color and semantic action/surface token. Use it for primary CTA backgrounds, dark editorial sections, the CMS sidebar, statistic cards, and the footer.
+- **Ink Black** (`#141413`): The warm near-black reserved for headline and body text on light surfaces. It is no longer used as a large section or primary button background.
 
 ### Secondary & Accent
 - **Signal Orange** (`#CF4500`): The burnt/rust CTA orange used on consent actions and eyebrow dots. Deeper than the brand yellow, brighter than ink — it's the page's single aggressive color and must be used sparingly.
@@ -91,25 +92,25 @@ MarkForMC is proprietary and licensed. When rebuilding a matching aesthetic with
 
 ### Buttons
 
-**Primary — Ink Pill**
-- Background: Ink Black (`#141413`)
+**Primary — Hananeel Crimson Pill**
+- Background: Hananeel Crimson (`#851226`)
 - Text: Canvas Cream (`#F3F0EE`) — not pure white
-- Border: 1.5px solid Ink Black (same as bg, creates crisp edge)
+- Border: 1.5px solid Hananeel Crimson (`#851226`, same as bg)
 - Radius: 20px
 - Padding: 6px 24px
 - Font: MarkForMC 16px / weight 500 / letter-spacing -0.32px
-- Default: as above; solid warm-black pill on cream canvas
+- Default: as above; solid Hananeel Crimson pill on cream canvas
 - Active / pressed: subtle inward-shrink or 2px offset (not a hover variant)
 - Use for: all marketing CTAs in the page body ("Learn more", "Explore", "Discover")
 
 **Secondary — Outlined Pill**
 - Background: White (`#FFFFFF`)
-- Text: Ink Black (`#141413`)
-- Border: 1.5px solid Ink Black
+- Text: Hananeel Crimson (`#851226`)
+- Border: 1.5px solid Hananeel Crimson (`#851226`)
 - Radius: 20px
 - Padding: 6px 24px
 - Font: MarkForMC 16px / weight 450 / line-height 20.8px
-- Default: white-on-cream pill with crisp ink outline
+- Default: white-on-cream pill with a crisp Hananeel Crimson outline
 - Active / pressed: subtle compression
 - Use for: secondary actions paired with a primary, or standalone utility CTAs
 
@@ -144,7 +145,7 @@ MarkForMC is proprietary and licensed. When rebuilding a matching aesthetic with
 ### Cards & Containers
 
 **Hero Media Frame (Stadium)**
-- Background: Dark video or full-bleed imagery (typically black `#000000` or `#2B2B2B` behind video)
+- Background: Hananeel Crimson (`#851226`) for branded editorial frames; full-bleed video may retain its natural media colors
 - Radius: 40px all corners (creates a stadium shape on wide viewports)
 - Width: ~full viewport minus ~48px gutter on each side
 - Height: ~60–70% of viewport
@@ -166,7 +167,7 @@ MarkForMC is proprietary and licensed. When rebuilding a matching aesthetic with
 - Height: ~380–420px (portrait-pill orientation)
 - Content: full-bleed photography with small overlaid chip labels
 - Chip inside: White pill (~ 999px radius), Ink Black text, padding 8px 20px, used for category tags like "Story"
-- Large inline CTA inside: Ink Pill button, oversized (padding 16px 40px, radius 40px)
+- Large inline CTA inside: Hananeel Crimson Pill button, oversized (padding 16px 40px, radius 40px)
 
 **Ghost Watermark Text Block**
 - Font: MarkForMC 72–128px / weight 500 / tight -2% tracking
@@ -180,7 +181,7 @@ Minimal form surface on the marketing page. The search input in the nav header i
 - Expanded state: horizontal input field, border `1px solid` Ink Black at ~50% opacity, radius 999px, padding 12px 24px, white background
 
 **Country/language selector (footer)**
-- Background: Ink Black (same as footer)
+- Background: Hananeel Crimson (`#851226`, same as footer)
 - Text: White
 - Border: 1px solid `rgba(255,255,255,0.4)`
 - Radius: 999px (full pill)
@@ -218,7 +219,7 @@ A signature motif: thin (~1–1.5px) single-weight curved lines in Light Signal 
 
 ### Footer
 
-- Background: Ink Black (`#141413`)
+- Background: Hananeel Crimson (`#851226`)
 - Text: White
 - Padding: 48px horizontal 100px / bottom 148px (very tall bottom space)
 - Structure: large conversational H2 ("We're always here when you need us") left-aligned, then a 4-column link grid below
@@ -286,10 +287,10 @@ Mastercard uses shadows as **atmospheric cushioning**, not directional light. Th
 - Attach a white satellite CTA to the bottom-right of each circular portrait
 - Set headlines in MarkForMC weight 500 with -2% letter-spacing
 - Use weight 450 (not 400) for body paragraphs
-- Keep primary CTAs as Ink Black pills (20px radius) with cream text
+- Keep primary CTAs as Hananeel Crimson (`#851226`) pills with cream text
 - Use Signal Orange only on consent, legal, or compliance actions
 - Float the nav as a rounded white pill below the viewport top, not flush at y=0
-- Build page rhythm from three surface tones: canvas cream → lifted cream → ink footer
+- Build page rhythm from three surface tones: canvas cream → lifted cream → Hananeel Crimson footer
 - Use thin Light Signal Orange arcs between service cards to imply connection
 
 ### Don't
@@ -330,7 +331,7 @@ Circular portraits scale proportionally (maintaining the perfect circle at every
 ## 9. Agent Prompt Guide
 
 ### Quick Color Reference
-- Primary CTA: "Ink Black (`#141413`) — the warm near-black used for primary pill buttons and footer"
+- Primary CTA / Dark Surface: "Hananeel Crimson (`#851226`) — the brand color used for primary pill buttons, editorial sections, CMS sidebar, statistic cards, and footer"
 - Background: "Canvas Cream (`#F3F0EE`) — warm putty body canvas, never pure white"
 - Lifted surface: "Lifted Cream (`#FCFBFA`) — one step lighter than canvas for nested sections"
 - Heading text: "Ink Black (`#141413`)"
@@ -338,15 +339,15 @@ Circular portraits scale proportionally (maintaining the perfect circle at every
 - Muted text: "Slate Gray (`#696969`)"
 - Signal / Consent: "Signal Orange (`#CF4500`) — reserve for cookie consent and legal actions"
 - Accent arc: "Light Signal Orange (`#F37338`) — orbital decorative lines only"
-- Border / Outline: "Ink Black at 1.5px for pill buttons; 1px at low opacity elsewhere"
-- Footer: "Ink Black (`#141413`) with White text"
+- Border / Outline: "Hananeel Crimson at 1.5px for action buttons; Ink Black at 1px low opacity for neutral structure"
+- Footer: "Hananeel Crimson (`#851226`) with White text"
 
 ### Example Component Prompts
 - "Create a circular portrait card 300px in diameter, with a square photograph cropped to a perfect circle. Attach a 56px white satellite button with a dark arrow icon at the bottom-right, so it protrudes ~40% outside the portrait. Below the portrait, add an eyebrow label with a Light Signal Orange dot and uppercase 'SERVICES' text in MarkForMC weight 700 at 14px. Below the eyebrow, set a 24px / weight 500 title in Ink Black."
-- "Design a primary CTA button: Ink Black (`#141413`) background, Canvas Cream (`#F3F0EE`) text, 20px border-radius, 6px vertical and 24px horizontal padding, MarkForMC font at 16px weight 500 with -2% letter-spacing."
+- "Design a primary CTA button: Hananeel Crimson (`#851226`) background, Canvas Cream (`#F3F0EE`) text, 20px border-radius, 6px vertical and 24px horizontal padding, MarkForMC font at 16px weight 500 with -2% letter-spacing."
 - "Build a floating navigation pill: white background with `rgba(0, 0, 0, 0.04) 0px 4px 24px 0px` shadow, 999px border-radius, ~16px vertical and 40px horizontal internal padding. Position it 24px below the viewport top, centered, with the Mastercard logo at the left, five primary links centered with 48px gap, and a circular 48px search button at the right."
-- "Create a hero media frame: 40px border-radius on all corners, full viewport width minus 48px gutters, ~60% viewport height, dark background for video content. Place it directly on the cream canvas with no shadow."
-- "Design a footer: Ink Black (`#141413`) background, white text, 4-column link grid with uppercase muted column headers at 14px weight 700 +4% tracking. Include a large conversational H2 above the grid, a 1px white-at-30%-opacity horizontal divider below, and a bottom row with copyright, legal small-print links, a pill-shaped country selector, and four social icons."
+- "Create a hero media frame: 40px border-radius on all corners, full viewport width minus 48px gutters, ~60% viewport height, Hananeel Crimson (`#851226`) branded background for editorial content. Place it directly on the cream canvas with no shadow."
+- "Design a footer: Hananeel Crimson (`#851226`) background, white text, 4-column link grid with uppercase muted column headers at 14px weight 700 +4% tracking. Include a large conversational H2 above the grid, a 1px white-at-30%-opacity horizontal divider below, and a bottom row with copyright, legal small-print links, a pill-shaped country selector, and four social icons."
 
 ### Iteration Guide
 When refining existing screens generated with this design system:

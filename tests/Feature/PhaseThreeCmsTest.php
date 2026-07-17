@@ -62,6 +62,31 @@ final class PhaseThreeCmsTest extends TestCase
         $this->assertDatabaseHas('congregations', ['member_number' => 'HC-'.now()->format('Y').'-00002']);
     }
 
+    public function test_congregation_detail_shows_firebase_photo_and_all_legacy_notes(): void
+    {
+        $admin = User::factory()->create();
+        $admin->givePermissionTo(['congregations.view', 'congregations.update']);
+        $congregation = Congregation::factory()->create([
+            'legacy_firebase_uid' => 'firebase-profile-uid',
+            'notes' => "Golongan darah: O\nNama ibu: Maria\nNama anak: Hana",
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.congregations.show', $congregation));
+
+        $response->assertOk()
+            ->assertSee('Data Firebase')
+            ->assertSee('Golongan darah')
+            ->assertSee('Nama ibu')
+            ->assertSee('Nama anak')
+            ->assertSee('firebase-profile-uid%2Fprofile-pictures?alt=media', false);
+
+        $this->actingAs($admin)
+            ->get(route('admin.congregations.edit', $congregation))
+            ->assertOk()
+            ->assertSee('Foto profil saat ini')
+            ->assertSee('firebase-profile-uid%2Fprofile-pictures?alt=media', false);
+    }
+
     public function test_last_super_admin_cannot_delete_or_demote_themselves(): void
     {
         $admin = User::factory()->create();
