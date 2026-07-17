@@ -4,6 +4,35 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    --font-sans: 'Sofia Sans', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-canvas: #f3f0ee;
+    --color-lifted: #fcfbfa;
+    --color-ink: #141413;
+    --color-signal: #cf4500;
+    --color-signal-light: #f37338;
+    --color-slate: #696969;
+}
+
+@layer base {
+    [x-cloak] { display: none !important; }
+    html { @apply scroll-smooth; }
+    body { @apply bg-canvas text-ink antialiased; font-weight: 450; }
+    h1, h2, h3 { @apply tracking-[-0.02em]; font-weight: 500; }
+    :focus-visible { @apply outline-2 outline-offset-2 outline-signal; }
+}
+
+@layer components {
+    .page-container { @apply mx-auto w-full max-w-7xl px-6 lg:px-12; }
+    .floating-nav { @apply rounded-full bg-white px-5 py-3 shadow-[0_4px_24px_rgba(0,0,0,0.04)] lg:px-8; }
+    .admin-table { @apply w-full text-left text-sm; }
+    .admin-table th { @apply border-b border-ink/15 px-4 py-3 text-xs font-bold uppercase tracking-[0.04em] text-slate; }
+    .admin-table td { @apply border-b border-ink/10 px-4 py-4; }
+    .prose-public { @apply text-lg leading-8 text-ink/80; }
+    .prose-public h2 { @apply mb-4 mt-10 text-3xl text-ink; }
+    .prose-public h3 { @apply mb-3 mt-8 text-2xl text-ink; }
+    .prose-public p { @apply mb-6; }
+    .prose-public ul { @apply mb-6 list-disc space-y-2 pl-6; }
+    .prose-public ol { @apply mb-6 list-decimal space-y-2 pl-6; }
+    .prose-public blockquote { @apply my-8 border-l-2 border-signal-light pl-6 text-2xl text-ink; }
 }
