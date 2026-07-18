@@ -5,7 +5,10 @@ set -euo pipefail
 APP_DIR="${APP_DIR:-/var/www/hananeel-cinta/current}"
 PHP_BIN="${PHP_BIN:-/usr/bin/php8.4}"
 COMPOSER_BIN="${COMPOSER_BIN:-/usr/bin/composer}"
-NPM_BIN="${NPM_BIN:-/usr/bin/npm}"
+NODE_BIN_DIR="${NODE_BIN_DIR:-/opt/node-v22/bin}"
+NPM_BIN="${NPM_BIN:-$NODE_BIN_DIR/npm}"
+
+export PATH="$NODE_BIN_DIR:$PATH"
 
 cd "$APP_DIR"
 
