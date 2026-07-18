@@ -11,7 +11,7 @@
     <div x-cloak x-show="navOpen" x-transition.opacity class="fixed inset-0 z-30 bg-primary/45 backdrop-blur-sm lg:hidden" @click="navOpen = false" aria-hidden="true"></div>
     <aside class="admin-sidebar" :class="navOpen && '!translate-x-0'" aria-label="Navigasi CMS">
         <div class="flex items-center justify-between gap-3 px-2 pb-6">
-            <a href="{{ route('admin.dashboard') }}" class="flex min-h-12 items-center gap-3 rounded-full" aria-label="Hananeel CMS — Dashboard"><img src="{{ Vite::asset('resources/project-assets/logo.webp') }}" alt="" class="h-12 w-12 rounded-full object-cover"><span><strong class="block text-sm text-white">Hananeel CMS</strong><span class="text-xs text-white/50">Content workspace</span></span></a>
+            <a href="{{ route('admin.dashboard') }}" class="flex min-h-12 items-center gap-3 rounded-full" aria-label="Hananeel CMS — Dashboard"><img src="{{ route('brand.logo') }}" alt="" class="h-12 w-12 rounded-full object-cover"><span><strong class="block text-sm text-white">Hananeel CMS</strong><span class="text-xs text-white/50">Content workspace</span></span></a>
             <button type="button" class="grid h-11 w-11 place-items-center rounded-full border border-white/25 lg:hidden" @click="navOpen = false"><span class="sr-only">Tutup navigasi</span><x-icon name="close"/></button>
         </div>
         <nav class="space-y-1">

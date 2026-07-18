@@ -4,7 +4,7 @@
     $pageTitle = $title ? $title.' · '.$churchName : ($siteSettings['seo_title'] ?: $churchName);
     $pageDescription = $description ?: ($siteSettings['seo_description'] ?: ($siteSettings['church_tagline'] ?? 'Rumah untuk bertumbuh dalam iman, pengharapan, dan kasih.'));
     $canonicalUrl = $canonical ?: url()->current();
-    $shareImage = $image ?: Vite::asset('resources/project-assets/logo.webp');
+    $shareImage = $image ?: route('brand.logo');
 @endphp
 <!doctype html>
 <html lang="id">
@@ -21,7 +21,7 @@
 <a href="#main-content" class="fixed left-5 top-4 z-[60] -translate-y-24 rounded-full bg-primary px-5 py-3 text-white focus:translate-y-0">Lewati ke konten utama</a>
 <header class="page-container fixed inset-x-0 top-4 z-50 lg:top-6">
     <nav class="floating-nav flex items-center justify-between gap-5" aria-label="Navigasi utama">
-        <a href="{{ route('home') }}" class="flex min-h-11 items-center gap-3 rounded-full pr-3 font-bold" aria-label="{{ $churchName }} — Beranda"><img src="{{ Vite::asset('resources/project-assets/logo.webp') }}" alt="" class="h-11 w-11 rounded-full object-cover"><span class="hidden max-w-40 truncate sm:inline">{{ $churchName }}</span></a>
+        <a href="{{ route('home') }}" class="flex min-h-11 items-center gap-3 rounded-full pr-3 font-bold" aria-label="{{ $churchName }} — Beranda"><img src="{{ route('brand.logo') }}" alt="" class="h-11 w-11 rounded-full object-cover"><span class="hidden max-w-40 truncate sm:inline">{{ $churchName }}</span></a>
         <div class="hidden items-center gap-1 text-sm xl:flex">
             <a href="{{ route('about') }}" @class(['nav-link','nav-link-active'=>request()->routeIs('about')]) @if(request()->routeIs('about')) aria-current="page" @endif>Tentang</a>
             <a href="{{ route('announcements.index') }}" @class(['nav-link','nav-link-active'=>request()->routeIs('announcements.*')]) @if(request()->routeIs('announcements.*')) aria-current="page" @endif>Pengumuman</a>

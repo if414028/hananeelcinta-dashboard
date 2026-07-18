@@ -13,7 +13,7 @@ Website resmi, CMS admin, dan REST API v1 untuk JKI Hananeel Cinta. Aplikasi dib
 
 ## Kebutuhan lokal
 
-- PHP 8.3 atau lebih baru beserta ekstensi Laravel/MySQL
+- PHP 8.4 atau lebih baru beserta ekstensi Laravel/MySQL
 - Composer 2
 - MySQL 8 atau MariaDB yang kompatibel
 - Node.js 20+ dan npm

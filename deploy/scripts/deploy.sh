@@ -3,8 +3,8 @@
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/var/www/hananeel-cinta/current}"
-PHP_BIN="${PHP_BIN:-/usr/bin/php}"
-COMPOSER_BIN="${COMPOSER_BIN:-/usr/local/bin/composer}"
+PHP_BIN="${PHP_BIN:-/usr/bin/php8.4}"
+COMPOSER_BIN="${COMPOSER_BIN:-/usr/bin/composer}"
 NPM_BIN="${NPM_BIN:-/usr/bin/npm}"
 
 cd "$APP_DIR"
@@ -12,7 +12,7 @@ cd "$APP_DIR"
 "$PHP_BIN" artisan down --retry=60 --refresh=15
 trap '"$PHP_BIN" artisan up' EXIT
 
-"$COMPOSER_BIN" install --no-dev --prefer-dist --no-interaction --optimize-autoloader
+"$PHP_BIN" "$COMPOSER_BIN" install --no-dev --prefer-dist --no-interaction --optimize-autoloader
 "$NPM_BIN" ci
 "$NPM_BIN" run build
 

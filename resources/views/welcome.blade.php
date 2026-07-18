@@ -9,7 +9,7 @@
 <body x-data="{ menuOpen: false }">
 <header class="page-container fixed inset-x-0 top-6 z-50">
     <nav class="floating-nav flex items-center justify-between" aria-label="Navigasi utama">
-        <a href="{{ route('home') }}" class="flex items-center gap-3 font-bold"><img src="{{ Vite::asset('resources/project-assets/logo.webp') }}" alt="Logo JKI Hananeel Cinta" class="h-12 w-12 rounded-full object-cover"><span>Hananeel Cinta</span></a>
+        <a href="{{ route('home') }}" class="flex items-center gap-3 font-bold"><img src="{{ route('brand.logo') }}" alt="Logo JKI Hananeel Cinta" class="h-12 w-12 rounded-full object-cover"><span>Hananeel Cinta</span></a>
         <div class="hidden items-center gap-8 lg:flex"><a href="#tentang">Tentang</a><a href="#pelayanan">Pelayanan</a><a href="#kontak">Kontak</a><a href="{{ route('admin.login') }}">Admin</a></div>
         <button class="grid h-11 w-11 place-items-center rounded-full border border-primary text-primary lg:hidden" @click="menuOpen = !menuOpen" :aria-expanded="menuOpen" aria-label="Buka menu">☰</button>
     </nav>
