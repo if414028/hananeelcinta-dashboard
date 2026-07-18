@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex,nofollow"><title>{{ $title ?? 'CMS' }} · JKI Hananeel Cinta</title>
+    <meta name="robots" content="noindex,nofollow"><title>{{ $title ?? 'CMS' }} · JKI Hananeel Cinta</title><link rel="icon" type="image/webp" href="{{ route('brand.logo') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body x-data="{ navOpen: false }" @keydown.escape.window="navOpen = false" :class="navOpen && 'overflow-hidden lg:overflow-auto'">
