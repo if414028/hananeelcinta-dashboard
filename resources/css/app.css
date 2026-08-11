@@ -81,6 +81,39 @@
     .ministry-image { @apply aspect-[4/3] w-full rounded-[24px] object-cover; }
     .ministry-card h3 { @apply mt-5 text-2xl; }
     .ministry-card > p { @apply mt-2 pb-2 leading-6 text-slate; }
+    .pastor-scroll-card {
+        isolation: isolate;
+        border: 1px solid rgba(92, 55, 19, .18);
+        border-radius: 20px;
+        background-color: #ead2a6;
+        background-image: linear-gradient(rgba(255, 250, 234, .36), rgba(255, 250, 234, .36)), var(--pastor-paper);
+        background-position: center;
+        background-size: cover;
+        box-shadow: 0 18px 42px rgba(72, 39, 12, .10), inset 0 0 32px rgba(128, 77, 25, .09);
+        margin-block: .65rem;
+    }
+    .pastor-scroll-card::before,
+    .pastor-scroll-card::after {
+        content: '';
+        position: absolute;
+        left: .8rem;
+        right: .8rem;
+        z-index: -1;
+        height: 1.15rem;
+        border: 1px solid rgba(85, 48, 16, .28);
+        border-radius: 999px;
+        background: linear-gradient(180deg, #8d5828 0%, #d5a664 34%, #9c612c 68%, #613716 100%);
+        box-shadow: 0 5px 10px rgba(60, 30, 8, .18);
+        transition: box-shadow .3s ease, transform .3s ease;
+    }
+    .pastor-scroll-card::before { top: -.62rem; }
+    .pastor-scroll-card::after { bottom: -.62rem; }
+    .pastor-scroll-card:hover {
+        border-color: rgba(133, 18, 38, .24);
+        box-shadow: 0 26px 54px rgba(72, 39, 12, .16), inset 0 0 32px rgba(128, 77, 25, .09);
+    }
+    .pastor-scroll-card:hover::before { transform: translateY(-2px); }
+    .pastor-scroll-card:hover::after { transform: translateY(2px); }
 }
 
 @media (min-width: 64rem) {
