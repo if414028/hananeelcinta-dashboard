@@ -53,10 +53,22 @@ Alpine.data('eventFieldBuilder', (initialFields = []) => ({
 
 Alpine.data('copyLink', (url) => ({
     copied: false,
+    copying: false,
+    error: false,
     async copy() {
-        await navigator.clipboard.writeText(url);
-        this.copied = true;
-        window.setTimeout(() => { this.copied = false; }, 2000);
+        this.copying = true;
+        this.copied = false;
+        this.error = false;
+        try {
+            if (!navigator.clipboard?.writeText) throw new Error('Clipboard API unavailable');
+            await navigator.clipboard.writeText(url);
+            this.copied = true;
+            window.setTimeout(() => { this.copied = false; }, 3000);
+        } catch (_) {
+            this.error = true;
+        } finally {
+            this.copying = false;
+        }
     },
 }));
 

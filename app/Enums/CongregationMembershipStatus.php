@@ -17,7 +17,7 @@ enum CongregationMembershipStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Visitor => 'Pengunjung', self::Regular => 'Jemaat Tetap', self::Member => 'Anggota', self::Inactive => 'Tidak Aktif'
+            self::Visitor => 'Pengunjung', self::Regular => 'Jemaat Tetap', self::Member => 'Jemaat', self::Inactive => 'Tidak Aktif'
         };
     }
 

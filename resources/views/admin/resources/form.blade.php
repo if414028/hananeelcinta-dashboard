@@ -1,5 +1,5 @@
 <x-layouts.admin :title="$title">
-    <div class="mb-8"><a href="{{ route($routeBase.'.index') }}" class="text-sm underline">← Kembali</a><h1 class="mt-4 text-4xl">{{ $title }}</h1></div>
+    <header class="admin-page-header"><div><a href="{{ route($routeBase.'.index') }}" class="text-link !min-h-8 !p-0"><x-icon name="arrow-left" :size="17"/>Kembali</a><h1 class="admin-page-title mt-4">{{ $title }}</h1></div></header>
     @if($errors->any())<x-alert type="error" class="mb-6"><strong>Data belum dapat disimpan.</strong><ul class="mt-2 list-disc pl-5">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></x-alert>@endif
     <x-card><form action="{{ $item->exists ? route($routeBase.'.update',$item) : route($routeBase.'.store') }}" method="post" enctype="multipart/form-data" class="grid gap-6 md:grid-cols-2">@csrf @if($item->exists)@method('PUT')@endif
         @foreach($fields as $field) @php($name=$field['name']) @php($type=$field['type']??'text') @php($raw=$field['value']??data_get($item,$name)) @php($value=old($name,$raw instanceof \BackedEnum?$raw->value:($raw instanceof \Carbon\CarbonInterface?($type==='datetime-local'?$raw->format('Y-m-d\TH:i'):$raw->format('Y-m-d')):$raw)))
@@ -9,6 +9,6 @@
             @elseif($type==='file')<div>@if($field['preview_url']??null)<div class="mb-4 flex items-center gap-4 rounded-[24px] bg-primary/5 p-4"><img src="{{ $field['preview_url'] }}" alt="Foto profil saat ini" class="h-20 w-20 rounded-[24px] object-cover" loading="lazy" referrerpolicy="no-referrer" onerror="this.closest('div').remove()"><div><p class="font-bold">Foto profil saat ini</p><p class="mt-1 text-sm text-slate">Unggah file baru untuk mengganti foto ini.</p></div></div>@endif<x-input :name="$name" :label="$field['label']" type="file" :required="$field['required']??false" /></div>
             @else<x-input :name="$name" :label="$field['label']" :type="$type" :value="$type==='file'?null:$value" :required="$field['required']??false" :step="$field['step']??null" />@endif
         @endforeach
-        <div class="md:col-span-2 flex gap-3 border-t border-ink/10 pt-6"><x-button type="submit">Simpan data</x-button><a href="{{ route($routeBase.'.index') }}" class="inline-flex min-h-11 items-center px-5">Batal</a></div>
+        <div class="admin-action-group border-t border-ink/10 pt-6 md:col-span-2"><x-button type="submit">Simpan data</x-button><a href="{{ route($routeBase.'.index') }}" class="button-secondary">Batal</a></div>
     </form></x-card>
 </x-layouts.admin>

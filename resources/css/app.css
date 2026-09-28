@@ -22,7 +22,7 @@
 @layer base {
     [x-cloak] { display: none !important; }
     html { @apply scroll-smooth; color-scheme: light; text-size-adjust: 100%; }
-    body { @apply min-w-80 bg-canvas text-ink antialiased; font-weight: 400; letter-spacing: -0.011em; }
+    body { @apply min-w-80 overflow-x-hidden bg-canvas text-ink antialiased; font-weight: 400; letter-spacing: -0.011em; }
     h1, h2, h3 { @apply tracking-[-0.035em]; font-weight: 650; text-wrap: balance; }
     p { text-wrap: pretty; }
     a, button, input, select, textarea { @apply transition duration-150; }
@@ -34,7 +34,10 @@
 }
 
 @layer components {
-    .page-container { @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12; }
+    .page-container { @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-12; padding-left: max(1.25rem, env(safe-area-inset-left)); padding-right: max(1.25rem, env(safe-area-inset-right)); }
+    .public-topbar { top: max(1rem, env(safe-area-inset-top)); }
+    .admin-topbar { padding-top: env(safe-area-inset-top); }
+    .mobile-action-bar { bottom: max(1rem, env(safe-area-inset-bottom)); }
     .floating-nav { @apply rounded-[22px] border border-white/65 bg-white/80 px-3 py-2 shadow-[0_8px_30px_rgba(0,0,0,0.08)] backdrop-blur-2xl lg:px-5; }
     .eyebrow { @apply text-xs font-semibold uppercase tracking-[0.08em] text-slate sm:text-sm; }
     .eyebrow::before { content: ''; @apply mr-2 inline-block h-1.5 w-1.5 rounded-full bg-signal-light align-middle; }
@@ -45,11 +48,16 @@
     .nav-link-active { @apply bg-ink/8 text-ink; }
     .nav-link-active::after { content: ''; @apply absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary; }
     .admin-shell { @apply mx-auto grid min-h-screen w-full max-w-[100rem] lg:grid-cols-[17rem_minmax(0,1fr)]; }
-    .admin-sidebar { @apply fixed inset-y-0 left-0 z-40 w-[min(18rem,calc(100vw-2rem))] -translate-x-full overflow-y-auto border-r border-ink/10 bg-white/90 p-5 text-ink shadow-[0_24px_48px_rgba(0,0,0,.14)] backdrop-blur-2xl transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:w-auto lg:translate-x-0 lg:shadow-none; }
+    .admin-sidebar { @apply fixed inset-y-0 left-0 z-40 w-[min(18rem,calc(100vw-1rem))] -translate-x-full overflow-y-auto border-r border-ink/10 bg-white/90 p-5 text-ink shadow-[0_24px_48px_rgba(0,0,0,.14)] backdrop-blur-2xl transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:w-auto lg:translate-x-0 lg:shadow-none; padding-top: max(1.25rem, env(safe-area-inset-top)); padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
     .admin-nav-link { @apply flex min-h-11 items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-slate hover:bg-ink/5 hover:text-ink; }
     .admin-nav-link-active { @apply bg-primary/8 text-primary hover:bg-primary/8 hover:text-primary; }
     .admin-nav-icon { @apply h-5 w-5 shrink-0; }
-    .admin-content { @apply min-w-0 px-5 pb-12 pt-6 sm:px-8 lg:px-10 lg:pb-16 lg:pt-8 xl:px-14; }
+    .admin-content { @apply min-w-0 px-4 pb-12 pt-5 sm:px-8 sm:pt-6 lg:px-10 lg:pb-16 lg:pt-8 xl:px-14; padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); padding-bottom: max(3rem, calc(env(safe-area-inset-bottom) + 1.5rem)); }
+    .admin-page-header { @apply mb-7 flex flex-col gap-5 border-b border-ink/10 pb-6 sm:mb-8 sm:flex-row sm:items-end sm:justify-between; }
+    .admin-page-title { @apply mt-2 break-words text-3xl leading-tight sm:text-4xl lg:text-5xl; }
+    .admin-page-subtitle { @apply mt-2 max-w-2xl text-sm leading-6 text-slate sm:text-base; }
+    .admin-action-group { @apply grid w-full gap-2 sm:flex sm:w-auto sm:flex-wrap; }
+    .admin-filter-actions { @apply grid grid-cols-[1fr_auto] items-end gap-2 md:flex; }
     .admin-surface { @apply rounded-2xl border border-ink/10 bg-lifted shadow-[0_1px_2px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.04)]; }
     .auth-shell { @apply grid min-h-screen; }
     .auth-visual { @apply hidden; }
@@ -81,6 +89,22 @@
     .ministry-image { @apply aspect-[4/3] w-full rounded-xl object-cover; }
     .ministry-card h3 { @apply mt-5 text-2xl; }
     .ministry-card > p { @apply mt-2 pb-2 leading-6 text-slate; }
+    .event-toolbar { @apply mb-8 flex flex-col gap-5 border-b border-ink/10 pb-7 sm:flex-row sm:items-end sm:justify-between; }
+    .event-kicker { @apply flex items-center gap-2 text-xs font-semibold uppercase tracking-[.1em] text-slate; }
+    .event-kicker::before { content: ''; @apply h-2 w-2 rounded-full bg-primary; }
+    .event-title { @apply mt-2 text-3xl leading-tight sm:text-5xl; }
+    .event-subtitle { @apply mt-2 max-w-2xl text-base leading-6 text-slate; }
+    .event-panel { @apply rounded-3xl border border-ink/10 bg-white shadow-[0_1px_2px_rgba(0,0,0,.03),0_12px_32px_rgba(0,0,0,.035)]; }
+    .event-panel-header { @apply flex flex-col gap-3 border-b border-ink/8 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-7; }
+    .event-panel-body { @apply p-5 sm:p-6 lg:p-7; }
+    .event-stat { @apply rounded-2xl border border-ink/8 bg-canvas/70 p-4 sm:p-5; }
+    .event-stat-label { @apply text-xs font-semibold uppercase tracking-[.06em] text-slate; }
+    .event-field-row { @apply rounded-2xl border border-ink/10 bg-white p-4 shadow-sm sm:p-5; }
+    .event-status-dot { @apply inline-block h-2 w-2 rounded-full; }
+    .event-data-row { @apply grid gap-1 border-b border-ink/8 py-4 last:border-0 sm:grid-cols-[11rem_1fr]; }
+    .ticket-shell { @apply overflow-hidden rounded-[28px] border border-ink/10 bg-white shadow-[0_24px_70px_rgba(0,0,0,.12)]; }
+    .ticket-rail { @apply relative overflow-hidden bg-primary p-7 text-white; }
+    .ticket-rail::after { content: ''; @apply pointer-events-none absolute -bottom-20 -right-20 h-56 w-56 rounded-full border border-white/15; }
     .pastor-scroll-card {
         isolation: isolate;
         border: 1px solid rgba(92, 55, 19, .18);
@@ -114,6 +138,19 @@
     }
     .pastor-scroll-card:hover::before { transform: translateY(-2px); }
     .pastor-scroll-card:hover::after { transform: translateY(2px); }
+}
+
+@media (max-width: 39.99rem) {
+    .mobile-full { @apply w-full; }
+    .admin-surface { border-radius: 1.25rem; }
+    .event-toolbar { @apply mb-6 pb-5; }
+    .ticket-shell { border-radius: 1.25rem; }
+    .ticket-rail { @apply p-5; }
+    .prose-public { @apply text-base leading-7; }
+}
+
+@supports (padding: max(0px)) {
+    .auth-shell > section:last-child { padding-bottom: max(3rem, env(safe-area-inset-bottom)); padding-left: max(1.25rem, env(safe-area-inset-left)); padding-right: max(1.25rem, env(safe-area-inset-right)); }
 }
 
 @media (prefers-reduced-transparency: reduce) {

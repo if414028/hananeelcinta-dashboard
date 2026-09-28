@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="id">
 <head>
-    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="robots" content="noindex,nofollow"><title>{{ $title ?? 'CMS' }} · JKI Hananeel Cinta</title><link rel="icon" type="image/webp" href="{{ route('brand.logo') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -9,7 +9,7 @@
 <a href="#admin-content" class="fixed left-5 top-4 z-[60] -translate-y-24 rounded-full bg-white px-5 py-3 text-ink focus:translate-y-0">Lewati ke konten</a>
 <div class="admin-shell">
     <div x-cloak x-show="navOpen" x-transition.opacity class="fixed inset-0 z-30 bg-primary/45 backdrop-blur-sm lg:hidden" @click="navOpen = false" aria-hidden="true"></div>
-    <aside class="admin-sidebar" :class="navOpen && '!translate-x-0'" aria-label="Navigasi CMS">
+    <aside class="admin-sidebar" :class="navOpen && '!translate-x-0'" aria-label="Navigasi CMS" :aria-hidden="!navOpen && window.innerWidth < 1024">
         <div class="flex items-center justify-between gap-3 px-2 pb-6">
             <a href="{{ route('admin.dashboard') }}" class="flex min-h-12 items-center gap-3 rounded-xl" aria-label="Hananeel CMS — Dashboard"><img src="{{ route('brand.logo') }}" alt="" class="h-11 w-11 rounded-xl object-cover"><span><strong class="block text-sm text-ink">Hananeel CMS</strong><span class="text-xs text-slate">Ruang kerja konten</span></span></a>
             <button type="button" class="grid h-11 w-11 place-items-center rounded-full border border-ink/15 lg:hidden" @click="navOpen = false"><span class="sr-only">Tutup navigasi</span><x-icon name="close"/></button>
@@ -36,9 +36,9 @@
         </div>
     </aside>
     <div class="min-w-0">
-        <header class="sticky top-0 z-20 flex min-h-20 items-center justify-between border-b border-ink/8 bg-canvas/90 px-5 backdrop-blur-xl sm:px-8 lg:px-10 xl:px-14">
+        <header class="admin-topbar sticky top-0 z-20 flex min-h-20 items-center justify-between border-b border-ink/8 bg-canvas/90 px-5 backdrop-blur-xl sm:px-8 lg:px-10 xl:px-14">
             <button type="button" class="grid h-11 w-11 place-items-center rounded-full border border-primary/35 bg-white text-primary lg:hidden" @click="navOpen = true" :aria-expanded="navOpen"><span class="sr-only">Buka navigasi</span><x-icon name="menu"/></button>
-            <div class="ml-auto flex items-center gap-3"><a href="{{ route('home') }}" target="_blank" rel="noopener" class="inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-sm font-medium text-slate hover:bg-white hover:text-ink">Lihat website <x-icon name="arrow-right" :size="17"/></a><div class="grid h-10 w-10 place-items-center rounded-full bg-primary text-sm font-bold text-white" aria-hidden="true">{{ str(auth()->user()->name)->substr(0, 1)->upper() }}</div></div>
+            <div class="ml-auto flex items-center gap-2 sm:gap-3"><a href="{{ route('home') }}" target="_blank" rel="noopener" class="inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-medium text-slate hover:bg-white hover:text-ink sm:px-4"><span class="hidden min-[23rem]:inline">Lihat website</span><span class="sr-only min-[23rem]:hidden">Buka website</span><x-icon name="arrow-right" :size="17"/></a><div class="grid h-10 w-10 place-items-center rounded-full bg-primary text-sm font-bold text-white" aria-hidden="true">{{ str(auth()->user()->name)->substr(0, 1)->upper() }}</div></div>
         </header>
         <main id="admin-content" class="admin-content">
             @if (session('success'))<x-alert class="mb-6">{{ session('success') }}</x-alert>@endif

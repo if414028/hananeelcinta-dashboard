@@ -1,5 +1,5 @@
 <x-layouts.auth title="Password Baru">
-    <x-card><h1 class="text-4xl">Buat password baru</h1>
+    <x-card><h1 class="text-3xl sm:text-4xl">Buat password baru</h1>
         @if ($errors->any())<x-alert type="error" class="mt-5">{{ $errors->first() }}</x-alert>@endif
         <form action="{{ route('admin.password.update') }}" method="post" class="mt-7 space-y-5">@csrf
             <input type="hidden" name="token" value="{{ $token }}">

@@ -29,7 +29,7 @@ final class CongregationController extends Controller
         $direction = $request->direction === 'asc' ? 'asc' : 'desc';
         $items = Congregation::query()->when($request->filled('search'), fn ($q) => $q->where(fn ($q) => $q->where('full_name', 'like', '%'.$request->search.'%')->orWhere('member_number', 'like', '%'.$request->search.'%')->orWhere('phone_number', 'like', '%'.$request->search.'%')->orWhere('whatsapp_number', 'like', '%'.$request->search.'%')->orWhere('email', 'like', '%'.$request->search.'%')))->when($request->filled('gender'), fn ($q) => $q->where('gender', $request->gender))->when($request->filled('membership_status'), fn ($q) => $q->where('membership_status', $request->membership_status))->orderBy($sort, $direction)->paginate(15)->withQueryString();
 
-        return view('admin.resources.index', ['title' => 'Data Jemaat', 'routeBase' => 'admin.congregations', 'createPermission' => 'congregations.create', 'exportPermission' => 'congregations.export', 'items' => $items, 'columns' => ['member_number' => 'No. Anggota', 'name' => 'Nama', 'gender' => 'Gender', 'membership' => 'Status', 'active' => 'Aktif'], 'rows' => $items->through(fn ($i) => ['id' => $i->id, 'member_number' => $i->member_number, 'name' => $i->full_name, 'gender' => $i->gender->label(), 'membership' => $i->membership_status->label(), 'active' => $i->is_active ? 'Ya' : 'Tidak']), 'filters' => [['name' => 'gender', 'label' => 'Gender', 'options' => CongregationGender::options()], ['name' => 'membership_status', 'label' => 'Status', 'options' => CongregationMembershipStatus::options()]]]);
+        return view('admin.resources.index', ['title' => 'Data Jemaat', 'routeBase' => 'admin.congregations', 'createPermission' => 'congregations.create', 'exportPermission' => 'congregations.export', 'items' => $items, 'columns' => ['member_number' => 'NIJ', 'name' => 'Nama'], 'rows' => $items->through(fn ($i) => ['id' => $i->id, 'member_number' => $i->member_number, 'name' => $i->full_name, 'profile_photo_url' => $i->profilePhotoUrl()]), 'filters' => [['name' => 'gender', 'label' => 'Gender', 'options' => CongregationGender::options()], ['name' => 'membership_status', 'label' => 'Status', 'options' => CongregationMembershipStatus::options()]]]);
     }
 
     public function create(): View
@@ -54,6 +54,12 @@ final class CongregationController extends Controller
     public function show(Congregation $congregation): View
     {
         $initials = Str::of($congregation->full_name)->explode(' ')->filter()->take(2)->map(fn (string $part): string => Str::upper(Str::substr($part, 0, 1)))->implode('');
+        $congregationDetails = collect($this->firebaseNoteDetails($congregation->notes));
+        $username = $congregationDetails->first(fn (array $detail): bool => Str::lower($detail['label']) === 'username lama')['value'] ?? null;
+        $congregationDetails = $congregationDetails
+            ->reject(fn (array $detail): bool => Str::lower($detail['label']) === 'username lama')
+            ->values()
+            ->all();
 
         return view('admin.resources.show', [
             'title' => 'Detail Jemaat',
@@ -68,14 +74,14 @@ final class CongregationController extends Controller
             ],
             'detailSections' => [
                 'Identitas' => [
-                    ['label' => 'Nomor anggota', 'value' => $congregation->member_number],
+                    ['label' => 'Nomor Induk Jemaat', 'value' => $congregation->member_number],
                     ['label' => 'Nama lengkap', 'value' => $congregation->full_name],
+                    ['label' => 'Username', 'value' => $username],
                     ['label' => 'Nama panggilan', 'value' => $congregation->nickname],
                     ['label' => 'Gender', 'value' => $congregation->gender->label()],
                     ['label' => 'Tempat lahir', 'value' => $congregation->place_of_birth],
                     ['label' => 'Tanggal lahir', 'value' => $congregation->date_of_birth?->format('d M Y')],
                     ['label' => 'Status pernikahan', 'value' => $congregation->marital_status?->label()],
-                    ['label' => 'Firebase UID', 'value' => $congregation->legacy_firebase_uid],
                 ],
                 'Kontak & Domisili' => [
                     ['label' => 'Email', 'value' => $congregation->email],
@@ -94,7 +100,7 @@ final class CongregationController extends Controller
                     ['label' => 'Tanggal bergabung', 'value' => $congregation->joined_at?->format('d M Y')],
                     ['label' => 'Status data', 'value' => $congregation->is_active ? 'Aktif' : 'Tidak aktif'],
                 ],
-                'Data Firebase' => $this->firebaseNoteDetails($congregation->notes),
+                'Data Jemaat' => $congregationDetails,
             ],
         ]);
     }
@@ -127,7 +133,7 @@ final class CongregationController extends Controller
 
         return response()->streamDownload(function () {
             $out = fopen('php://output', 'w');
-            fputcsv($out, ['Nomor Anggota', 'Nama', 'Gender', 'Telepon', 'WhatsApp', 'Email', 'Status']);
+            fputcsv($out, ['Nomor Induk Jemaat', 'Nama', 'Gender', 'Telepon', 'WhatsApp', 'Email', 'Status']);
             Congregation::query()->orderBy('id')->chunk(500, fn ($rows) => $rows->each(fn ($i) => fputcsv($out, [$i->member_number, $i->full_name, $i->gender->label(), $i->phone_number, $i->whatsapp_number, $i->email, $i->membership_status->label()])));
             fclose($out);
         }, 'jemaat-'.now()->format('Ymd').'.csv');
@@ -152,6 +158,7 @@ final class CongregationController extends Controller
 
                 return ['label' => trim($label), 'value' => $value === null ? null : trim($value)];
             })
+            ->reject(fn (array $detail): bool => Str::contains(Str::lower($detail['label']), ['role firebase', 'firebase uid']))
             ->values()
             ->all();
     }

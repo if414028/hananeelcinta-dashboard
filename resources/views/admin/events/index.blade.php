@@ -1,13 +1,15 @@
 <x-layouts.admin title="Event">
-    <div class="mb-8 flex flex-wrap items-end justify-between gap-4">
-        <div><p class="eyebrow">Pelayanan</p><h1 class="mt-3 text-4xl">Event</h1><p class="mt-2 text-slate">Kelola acara, formulir pendaftaran, dan kehadiran jemaat.</p></div>
-        @can('events.create')<a href="{{ route('admin.events.create') }}" class="button-primary"><x-icon name="plus"/>Buat Event</a>@endcan
-    </div>
-    <x-card class="mb-6"><form method="get" class="flex flex-col gap-3 sm:flex-row"><x-input name="search" aria-label="Cari event" placeholder="Cari event" :value="request('search')"/><x-button type="submit" variant="secondary"><x-icon name="search"/>Cari</x-button></form></x-card>
-    <x-card class="overflow-hidden !p-0">
-        <div class="overflow-x-auto"><table class="admin-table"><thead><tr><th>Event</th><th>Tanggal</th><th>Status</th><th>Pendaftar</th><th>Aksi</th></tr></thead><tbody>
-        @forelse($events as $event)<tr><td><strong>{{ $event->title }}</strong></td><td>{{ $event->starts_at->format('d M Y, H:i') }}@if($event->ends_at)<br><span class="text-slate">s.d. {{ $event->ends_at->format('d M Y, H:i') }}</span>@endif</td><td><x-badge :tone="$event->is_published ? 'success' : 'neutral'">{{ $event->is_published ? 'Publik' : 'Draft' }}</x-badge></td><td>{{ $event->registrations_count }}</td><td><a href="{{ route('admin.events.show',$event) }}" class="font-semibold text-link hover:underline">Detail</a></td></tr>
+    <header class="event-toolbar">
+        <div><p class="event-kicker">Pelayanan</p><h1 class="event-title">Event</h1><p class="event-subtitle">Buat acara, bagikan pendaftaran, dan pantau kehadiran dalam satu alur.</p></div>
+        @can('events.create')<a href="{{ route('admin.events.create') }}" class="button-primary mobile-full"><x-icon name="plus"/>Buat event</a>@endcan
+    </header>
+    <section class="event-panel">
+        <div class="event-panel-header"><div><h2 class="text-xl">Semua event</h2><p class="mt-1 text-sm text-slate">{{ $events->total() }} event tersimpan</p></div><form method="get" class="flex w-full max-w-md gap-2" role="search"><label for="event-search" class="sr-only">Cari event</label><input id="event-search" name="search" value="{{ request('search') }}" class="form-control min-w-0" placeholder="Cari nama event"><button type="submit" class="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-ink/15 bg-white" aria-label="Cari"><x-icon name="search"/></button></form></div>
+        <div class="hidden overflow-x-auto md:block"><table class="admin-table"><thead><tr><th>Event</th><th>Jadwal</th><th>Status</th><th class="text-right">Pendaftar</th><th><span class="sr-only">Aksi</span></th></tr></thead><tbody>
+        @forelse($events as $event)<tr><td><a href="{{ route('admin.events.show',$event) }}" class="font-semibold text-ink hover:text-primary">{{ $event->title }}</a></td><td><span class="font-medium">{{ $event->starts_at->translatedFormat('d M Y') }}</span><br><span class="text-xs text-slate">{{ $event->starts_at->format('H:i') }}@if($event->ends_at) – {{ $event->ends_at->format('d M, H:i') }}@endif WIB</span></td><td><span class="inline-flex items-center gap-2 text-sm font-medium"><span class="event-status-dot {{ $event->is_published ? 'bg-emerald-500' : 'bg-slate' }}"></span>{{ $event->is_published ? 'Pendaftaran aktif' : 'Draft' }}</span></td><td class="text-right text-lg font-semibold">{{ $event->registrations_count }}</td><td><a href="{{ route('admin.events.show',$event) }}" class="text-link !min-h-8">Buka <x-icon name="arrow-right" :size="16"/></a></td></tr>
         @empty<tr><td colspan="5"><x-empty-state title="Belum ada event" description="Buat event pertama untuk mulai menerima pendaftaran."/></td></tr>@endforelse
-        </tbody></table></div><div class="p-6">{{ $events->links() }}</div>
-    </x-card>
+        </tbody></table></div>
+        <div class="grid gap-3 p-4 md:hidden">@forelse($events as $event)<a href="{{ route('admin.events.show',$event) }}" class="rounded-2xl border border-ink/10 bg-white p-5"><div class="flex items-start justify-between gap-3"><h2 class="text-xl">{{ $event->title }}</h2><x-icon name="arrow-right"/></div><p class="mt-3 text-sm text-slate">{{ $event->starts_at->translatedFormat('d M Y · H:i') }} WIB</p><div class="mt-4 flex items-center justify-between"><span class="inline-flex items-center gap-2 text-sm"><span class="event-status-dot {{ $event->is_published ? 'bg-emerald-500' : 'bg-slate' }}"></span>{{ $event->is_published ? 'Aktif' : 'Draft' }}</span><span class="text-sm font-semibold">{{ $event->registrations_count }} peserta</span></div></a>@empty<x-empty-state title="Belum ada event" description="Buat event pertama untuk mulai menerima pendaftaran."/>@endforelse</div>
+        @if($events->hasPages())<div class="border-t border-ink/8 p-5">{{ $events->links() }}</div>@endif
+    </section>
 </x-layouts.admin>

@@ -9,7 +9,7 @@
 <!doctype html>
 <html lang="id">
 <head>
-    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>{{ $pageTitle }}</title><meta name="description" content="{{ $pageDescription }}"><link rel="canonical" href="{{ $canonicalUrl }}"><link rel="icon" type="image/webp" href="{{ route('brand.logo') }}">
     @if($noindex)<meta name="robots" content="noindex,nofollow">@else<meta name="robots" content="index,follow">@endif
     <meta property="og:type" content="{{ $type }}"><meta property="og:title" content="{{ $pageTitle }}"><meta property="og:description" content="{{ $pageDescription }}"><meta property="og:url" content="{{ $canonicalUrl }}"><meta property="og:image" content="{{ $shareImage }}">
@@ -19,7 +19,7 @@
 </head>
 <body x-data="{ menuOpen: false }" @keydown.escape.window="menuOpen = false" :class="menuOpen && 'overflow-hidden xl:overflow-auto'">
 <a href="#main-content" class="fixed left-5 top-4 z-[60] -translate-y-24 rounded-full bg-primary px-5 py-3 text-white focus:translate-y-0">Lewati ke konten utama</a>
-<header class="page-container fixed inset-x-0 top-4 z-50 lg:top-6">
+<header class="public-topbar page-container fixed inset-x-0 z-50 lg:top-6">
     <nav class="floating-nav flex items-center justify-between gap-5" aria-label="Navigasi utama">
         <a href="{{ route('home') }}" class="flex min-h-11 items-center gap-3 rounded-full pr-3 font-bold" aria-label="{{ $churchName }} — Beranda"><img src="{{ route('brand.logo') }}" alt="" class="h-11 w-11 rounded-full object-cover"><span class="hidden max-w-40 truncate sm:inline">{{ $churchName }}</span></a>
         <div class="hidden items-center gap-1 text-sm xl:flex">

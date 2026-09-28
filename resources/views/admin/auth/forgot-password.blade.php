@@ -1,5 +1,5 @@
 <x-layouts.auth title="Lupa Password">
-    <x-card><h1 class="text-4xl">Reset password</h1><p class="mt-3 text-slate">Kami akan mengirim tautan reset ke email admin yang terdaftar.</p>
+    <x-card><h1 class="text-3xl sm:text-4xl">Reset password</h1><p class="mt-3 text-slate">Kami akan mengirim tautan reset ke email admin yang terdaftar.</p>
         @if ($errors->any())<x-alert type="error" class="mt-5">{{ $errors->first() }}</x-alert>@endif
         <form action="{{ route('admin.password.email') }}" method="post" class="mt-7 space-y-5">@csrf
             <x-input label="Email" name="email" type="email" :value="old('email')" required autofocus />

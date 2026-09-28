@@ -68,13 +68,17 @@ final class PhaseThreeCmsTest extends TestCase
         $admin->givePermissionTo(['congregations.view', 'congregations.update']);
         $congregation = Congregation::factory()->create([
             'legacy_firebase_uid' => 'firebase-profile-uid',
-            'notes' => "Golongan darah: O\nNama ibu: Maria\nNama anak: Hana",
+            'notes' => "Username lama: jemaat.satu\nGolongan darah: O\nNama ibu: Maria\nNama anak: Hana",
         ]);
 
         $response = $this->actingAs($admin)->get(route('admin.congregations.show', $congregation));
 
         $response->assertOk()
-            ->assertSee('Data Firebase')
+            ->assertSee('Data Jemaat')
+            ->assertSeeInOrder(['Identitas', 'Username', 'jemaat.satu', 'Data Jemaat'])
+            ->assertDontSee('Username lama')
+            ->assertDontSee('Role Firebase')
+            ->assertDontSee('Firebase UID')
             ->assertSee('Golongan darah')
             ->assertSee('Nama ibu')
             ->assertSee('Nama anak')
