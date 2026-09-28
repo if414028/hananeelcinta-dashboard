@@ -20,6 +20,7 @@ final class RolePermissionSeeder extends Seeder
         'prayer_requests.view', 'prayer_requests.view_confidential', 'prayer_requests.update', 'prayer_requests.delete', 'prayer_requests.export',
         'family_altars.view', 'family_altars.create', 'family_altars.update', 'family_altars.delete',
         'pastor_messages.view', 'pastor_messages.create', 'pastor_messages.update', 'pastor_messages.delete', 'pastor_messages.publish',
+        'events.view', 'events.create', 'events.update', 'events.delete', 'events.registrations', 'events.check_in',
         'settings.view', 'settings.update', 'audit_logs.view',
     ];
 

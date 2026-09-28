@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Web\AnnouncementController;
 use App\Http\Controllers\Web\BrandAssetController;
+use App\Http\Controllers\Web\EventRegistrationController;
 use App\Http\Controllers\Web\FamilyAltarController;
 use App\Http\Controllers\Web\HomeController;
 use App\Http\Controllers\Web\PageController;
@@ -21,6 +22,10 @@ Route::get('/announcements/{announcement:slug}', [AnnouncementController::class,
 Route::get('/pastor-messages', [PastorMessageController::class, 'index'])->name('pastor-messages.index');
 Route::get('/pastor-messages/{pastorMessage:slug}', [PastorMessageController::class, 'show'])->name('pastor-messages.show');
 Route::get('/family-altars', FamilyAltarController::class)->name('family-altars.index');
+Route::get('/events/{event:slug}/register', [EventRegistrationController::class, 'create'])->name('events.register');
+Route::post('/events/{event:slug}/register', [EventRegistrationController::class, 'store'])->middleware('throttle:event-registration')->name('events.store');
+Route::get('/event-tickets/{registration}', [EventRegistrationController::class, 'ticket'])->name('events.ticket');
+Route::get('/event-tickets/{registration}/download', [EventRegistrationController::class, 'download'])->name('events.ticket.download');
 Route::get('/prayer-request', [PrayerRequestController::class, 'create'])->name('prayer-request.create');
 Route::post('/prayer-request', [PrayerRequestController::class, 'store'])->middleware('throttle:prayer-request')->name('prayer-request.store');
 Route::get('/prayer-request/success/{reference}', [PrayerRequestController::class, 'success'])->name('prayer-request.success');

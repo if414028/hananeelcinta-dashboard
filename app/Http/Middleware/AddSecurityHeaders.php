@@ -16,7 +16,8 @@ final class AddSecurityHeaders
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'SAMEORIGIN');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $response->headers->set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+        $cameraPolicy = $request->is('admin/events/*/scanner') ? 'camera=(self)' : 'camera=()';
+        $response->headers->set('Permissions-Policy', $cameraPolicy.', microphone=(), geolocation=()');
         $response->headers->set('Content-Security-Policy', "base-uri 'self'; form-action 'self'; frame-ancestors 'self'; object-src 'none'");
 
         if ($request->is('admin/*') || $request->is('api/v1/auth/*') || $request->is('api/v1/me')) {

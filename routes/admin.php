@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\Auth\NewPasswordController;
 use App\Http\Controllers\Admin\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Admin\CongregationController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\EventController;
+use App\Http\Controllers\Admin\EventRegistrationController;
 use App\Http\Controllers\Admin\FamilyAltarController;
 use App\Http\Controllers\Admin\PastorMessageController;
 use App\Http\Controllers\Admin\PrayerRequestController;
@@ -49,6 +51,13 @@ Route::middleware(['auth', 'active'])->group(function (): void {
 
     Route::resource('family-altars', FamilyAltarController::class)->parameters(['family-altars' => 'familyAltar'])
         ->middlewareFor(['index', 'show'], 'permission:family_altars.view')->middlewareFor(['create', 'store'], 'permission:family_altars.create')->middlewareFor(['edit', 'update'], 'permission:family_altars.update')->middlewareFor('destroy', 'permission:family_altars.delete');
+
+    Route::get('events/{event}/registrations', [EventRegistrationController::class, 'index'])->middleware('permission:events.registrations')->name('events.registrations');
+    Route::get('events/{event}/scanner', [EventRegistrationController::class, 'scanner'])->middleware('permission:events.check_in')->name('events.scanner');
+    Route::get('event-registrations/{registration}/verify', [EventRegistrationController::class, 'verify'])->middleware('permission:events.check_in')->name('event-registrations.verify');
+    Route::post('event-registrations/{registration}/check-in', [EventRegistrationController::class, 'checkIn'])->middleware('permission:events.check_in')->name('event-registrations.check-in');
+    Route::resource('events', EventController::class)
+        ->middlewareFor(['index', 'show'], 'permission:events.view')->middlewareFor(['create', 'store'], 'permission:events.create')->middlewareFor(['edit', 'update'], 'permission:events.update')->middlewareFor('destroy', 'permission:events.delete');
 
     Route::post('pastor-messages/{pastorMessage}/publish', [PastorMessageController::class, 'publish'])->middleware('permission:pastor_messages.publish')->name('pastor-messages.publish');
     Route::resource('pastor-messages', PastorMessageController::class)->parameters(['pastor-messages' => 'pastorMessage'])

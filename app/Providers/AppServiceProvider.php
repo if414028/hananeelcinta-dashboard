@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Auth\Contracts\FirebaseTokenVerifier;
 use App\Auth\GoogleFirebaseTokenVerifier;
 use App\Models\Announcement;
+use App\Models\Event;
 use App\Models\FamilyAltar;
 use App\Models\PastorMessage;
 use App\Services\WebsiteSettings;
@@ -36,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
 
         View::composer('components.layouts.public', fn ($view) => $view->with('siteSettings', app(WebsiteSettings::class)->public()));
 
-        foreach ([Announcement::class, FamilyAltar::class, PastorMessage::class] as $model) {
+        foreach ([Announcement::class, Event::class, FamilyAltar::class, PastorMessage::class] as $model) {
             $model::saved(fn () => $this->forgetPublicHomeCache());
             $model::deleted(fn () => $this->forgetPublicHomeCache());
             $model::restored(fn () => $this->forgetPublicHomeCache());
@@ -51,6 +52,9 @@ class AppServiceProvider extends ServiceProvider
             ->by($request->ip()));
 
         RateLimiter::for('prayer-request', fn (Request $request): Limit => Limit::perMinutes(10, 5)
+            ->by($request->ip()));
+
+        RateLimiter::for('event-registration', fn (Request $request): Limit => Limit::perMinutes(10, 8)
             ->by($request->ip()));
 
         RateLimiter::for('mobile-auth', fn (Request $request): Limit => Limit::perMinute(30)
