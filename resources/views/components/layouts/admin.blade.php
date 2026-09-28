@@ -35,7 +35,7 @@
             <form action="{{ route('admin.logout') }}" method="post" class="mt-4">@csrf<button type="submit" class="admin-nav-link w-full"><x-icon name="logout" class="admin-nav-icon"/>Keluar</button></form>
         </div>
     </aside>
-    <div class="min-w-0">
+    <div class="min-w-0 max-w-full overflow-x-clip">
         <header class="admin-topbar sticky top-0 z-20 flex min-h-20 items-center justify-between border-b border-ink/8 bg-canvas/90 px-5 backdrop-blur-xl sm:px-8 lg:px-10 xl:px-14">
             <button type="button" class="grid h-11 w-11 place-items-center rounded-full border border-primary/35 bg-white text-primary lg:hidden" @click="navOpen = true" :aria-expanded="navOpen"><span class="sr-only">Buka navigasi</span><x-icon name="menu"/></button>
             <div class="ml-auto flex items-center gap-2 sm:gap-3"><a href="{{ route('home') }}" target="_blank" rel="noopener" class="inline-flex min-h-11 items-center gap-2 rounded-full px-3 text-sm font-medium text-slate hover:bg-white hover:text-ink sm:px-4"><span class="hidden min-[23rem]:inline">Lihat website</span><span class="sr-only min-[23rem]:hidden">Buka website</span><x-icon name="arrow-right" :size="17"/></a><div class="grid h-10 w-10 place-items-center rounded-full bg-primary text-sm font-bold text-white" aria-hidden="true">{{ str(auth()->user()->name)->substr(0, 1)->upper() }}</div></div>

@@ -47,12 +47,13 @@
     .nav-link { @apply relative inline-flex min-h-11 items-center rounded-xl px-3 font-medium text-ink/70 hover:bg-ink/5 hover:text-ink; }
     .nav-link-active { @apply bg-ink/8 text-ink; }
     .nav-link-active::after { content: ''; @apply absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary; }
-    .admin-shell { @apply mx-auto grid min-h-screen w-full max-w-[100rem] lg:grid-cols-[17rem_minmax(0,1fr)]; }
+    .admin-shell { @apply mx-auto grid min-h-screen w-full min-w-0 max-w-[100rem] overflow-x-clip lg:grid-cols-[17rem_minmax(0,1fr)]; }
     .admin-sidebar { @apply fixed inset-y-0 left-0 z-40 w-[min(18rem,calc(100vw-1rem))] -translate-x-full overflow-y-auto border-r border-ink/10 bg-white/90 p-5 text-ink shadow-[0_24px_48px_rgba(0,0,0,.14)] backdrop-blur-2xl transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:w-auto lg:translate-x-0 lg:shadow-none; padding-top: max(1.25rem, env(safe-area-inset-top)); padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
     .admin-nav-link { @apply flex min-h-11 items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium text-slate hover:bg-ink/5 hover:text-ink; }
     .admin-nav-link-active { @apply bg-primary/8 text-primary hover:bg-primary/8 hover:text-primary; }
     .admin-nav-icon { @apply h-5 w-5 shrink-0; }
-    .admin-content { @apply min-w-0 px-4 pb-12 pt-5 sm:px-8 sm:pt-6 lg:px-10 lg:pb-16 lg:pt-8 xl:px-14; padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); padding-bottom: max(3rem, calc(env(safe-area-inset-bottom) + 1.5rem)); }
+    .admin-content { @apply w-full min-w-0 max-w-full overflow-x-clip px-4 pb-12 pt-5 sm:px-8 sm:pt-6 lg:px-10 lg:pb-16 lg:pt-8 xl:px-14; padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); padding-bottom: max(3rem, calc(env(safe-area-inset-bottom) + 1.5rem)); }
+    .admin-content > * { max-width: 100%; min-width: 0; }
     .admin-page-header { @apply mb-7 flex flex-col gap-5 border-b border-ink/10 pb-6 sm:mb-8 sm:flex-row sm:items-end sm:justify-between; }
     .admin-page-title { @apply mt-2 break-words text-3xl leading-tight sm:text-4xl lg:text-5xl; }
     .admin-page-subtitle { @apply mt-2 max-w-2xl text-sm leading-6 text-slate sm:text-base; }
