@@ -35,7 +35,7 @@ final class PastorMessageController extends Controller
         $data = $this->data($request, new PastorMessage, $uploads, $sanitizer) + ['created_by' => $request->user()->id];
         $item = PastorMessage::query()->create($data);
 
-        return redirect()->route('admin.pastor-messages.show', $item)->with('success', 'Pastor Message berhasil ditambahkan.');
+        return redirect()->route('admin.pastor-messages.show', $item)->with('success', 'Pastor Message berhasil dipublikasikan.');
     }
 
     public function show(PastorMessage $pastorMessage): View
@@ -73,7 +73,8 @@ final class PastorMessageController extends Controller
 
     private function data(Request $request, PastorMessage $item, ImageUploadService $uploads, HtmlSanitizer $sanitizer): array
     {
-        $data = array_merge($request->safe()->except('featured_image'), ['slug' => $this->slug($request->string('title')->toString(), $item->id), 'content' => $sanitizer->sanitize($request->string('content')->toString()), 'excerpt' => $request->filled('excerpt') ? $request->excerpt : Str::limit(strip_tags($request->content), 240), 'is_featured' => $request->boolean('is_featured'), 'updated_by' => $request->user()->id]);
+        $content = $sanitizer->sanitize($request->string('content')->toString());
+        $data = array_merge($request->safe()->except('featured_image'), ['writer' => $request->string('writer')->toString(), 'slug' => $this->slug($request->string('title')->toString(), $item->id), 'content' => $content, 'excerpt' => Str::limit(trim(html_entity_decode(strip_tags($content))), 240), 'status' => PastorMessageStatus::Published, 'published_at' => $item->published_at ?? now(), 'is_featured' => false, 'updated_by' => $request->user()->id]);
         if ($request->hasFile('featured_image')) {
             $data['featured_image'] = $uploads->store($request->file('featured_image'), 'pastor-messages', $item->featured_image);
         }
@@ -95,6 +96,6 @@ final class PastorMessageController extends Controller
 
     private function form(PastorMessage $item, string $title): View
     {
-        return view('admin.resources.form', ['title' => $title, 'routeBase' => 'admin.pastor-messages', 'item' => $item, 'fields' => [['name' => 'title', 'label' => 'Judul', 'required' => true], ['name' => 'writer', 'label' => 'Penulis', 'required' => true], ['name' => 'content', 'label' => 'Konten', 'type' => 'textarea', 'required' => true], ['name' => 'excerpt', 'label' => 'Ringkasan', 'type' => 'textarea'], ['name' => 'featured_image', 'label' => 'Featured image', 'type' => 'file'], ['name' => 'published_at', 'label' => 'Tanggal publikasi', 'type' => 'datetime-local'], ['name' => 'status', 'label' => 'Status', 'type' => 'select', 'options' => PastorMessageStatus::options()], ['name' => 'is_featured', 'label' => 'Featured', 'type' => 'checkbox']]]);
+        return view('admin.resources.form', ['title' => $title, 'routeBase' => 'admin.pastor-messages', 'item' => $item, 'submitLabel' => $item->exists ? 'Simpan perubahan' : 'Publikasikan Pastor Message', 'fields' => [['name' => 'title', 'label' => 'Judul', 'required' => true], ['name' => 'writer', 'label' => 'Nama Penulis (opsional)'], ['name' => 'content', 'label' => 'Konten', 'type' => 'richtext', 'required' => true], ['name' => 'featured_image', 'label' => 'Featured Image (opsional)', 'type' => 'file']]]);
     }
 }

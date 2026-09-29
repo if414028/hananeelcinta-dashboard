@@ -1,6 +1,71 @@
+import './chart-tooltips';
 import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;
+
+Alpine.data('richText', () => ({
+    selection: null,
+    active: {},
+    block: 'p',
+    characters: 0,
+    words: 0,
+    linkOpen: false,
+    linkUrl: '',
+    linkError: false,
+    init() {
+        this.$refs.editor.innerHTML = this.$refs.input.value;
+        this.sync();
+    },
+    sync() {
+        this.$refs.input.value = this.$refs.editor.innerHTML;
+        const text = this.$refs.editor.innerText.trim();
+        this.characters = Array.from(text).length;
+        this.words = text ? text.split(/\s+/u).length : 0;
+        this.saveSelection();
+    },
+    saveSelection() {
+        const selected = window.getSelection();
+        if (selected.rangeCount && this.$refs.editor.contains(selected.anchorNode)) {
+            this.selection = selected.getRangeAt(0).cloneRange();
+            for (const name of ['bold', 'italic', 'underline', 'strikeThrough', 'justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull', 'insertUnorderedList', 'insertOrderedList']) {
+                this.active[name] = document.queryCommandState(name);
+            }
+            this.block = String(document.queryCommandValue('formatBlock') || 'p').toLowerCase().replace(/[<>]/g, '');
+        }
+    },
+    command(command, value = null) {
+        this.$refs.editor.focus();
+        if (this.selection) {
+            const selected = window.getSelection();
+            selected.removeAllRanges();
+            selected.addRange(this.selection);
+        }
+        document.execCommand(command, false, value);
+        this.sync();
+    },
+    paste(event) {
+        this.command('insertText', event.clipboardData.getData('text/plain'));
+    },
+    openLink() {
+        this.saveSelection();
+        this.linkUrl = '';
+        this.linkError = false;
+        this.linkOpen = true;
+        this.$nextTick(() => this.$refs.linkInput.focus());
+    },
+    insertLink() {
+        let url;
+        try {
+            url = new URL(this.linkUrl.trim());
+            if (!['https:', 'http:'].includes(url.protocol)) throw new Error();
+        } catch (_) {
+            this.linkError = true;
+            return;
+        }
+        this.command('createLink', url.href);
+        this.linkOpen = false;
+    },
+}));
 
 Alpine.data('parallaxBackground', () => ({
     offset: 0,

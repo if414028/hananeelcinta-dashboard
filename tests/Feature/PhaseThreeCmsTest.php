@@ -125,6 +125,36 @@ final class PhaseThreeCmsTest extends TestCase
         $this->assertStringNotContainsString('<script', $content);
     }
 
+    public function test_pastor_message_publishes_immediately_without_optional_fields(): void
+    {
+        $admin = User::factory()->create();
+        $admin->givePermissionTo(['pastor_messages.create', 'pastor_messages.update', 'pastor_messages.view']);
+        $this->freezeTime();
+        $this->actingAs($admin)->get(route('admin.pastor-messages.create'))->assertOk()->assertSee('Format konten')->assertDontSee('name="status"', false)->assertDontSee('name="published_at"', false)->assertDontSee('name="is_featured"', false);
+        $content = '<p style="text-align: center; color: red" onclick="evil()"><b>Bold</b> <i>Italic</i> <u>Underline</u></p>';
+        $this->actingAs($admin)->post(route('admin.pastor-messages.store'), ['title' => 'Pesan Baru', 'content' => $content, 'status' => 'draft', 'published_at' => '2030-01-01', 'is_featured' => true])->assertSessionHasNoErrors()->assertRedirect();
+        $message = PastorMessage::query()->sole();
+        $this->assertSame('', $message->writer);
+        $this->assertSame(PastorMessageStatus::Published, $message->status);
+        $this->assertSame(now()->format('Y-m-d H:i:s'), $message->published_at->format('Y-m-d H:i:s'));
+        $this->assertFalse($message->is_featured);
+        $this->assertNull($message->featured_image);
+        $this->assertSame('<p style="text-align: center"><b>Bold</b> <i>Italic</i> <u>Underline</u></p>', $message->content);
+        $this->get(route('pastor-messages.show', $message))->assertOk()->assertSee($message->content, false);
+        $publishedAt = $message->published_at->copy();
+        $this->travel(1)->days();
+        $this->put(route('admin.pastor-messages.update', $message), ['title' => 'Pesan Diperbarui', 'content' => '<p>Isi baru</p>'])->assertSessionHasNoErrors()->assertRedirect();
+        $this->assertTrue($message->fresh()->published_at->equalTo($publishedAt));
+    }
+
+    public function test_pastor_message_rejects_empty_formatted_content(): void
+    {
+        $admin = User::factory()->create();
+        $admin->givePermissionTo('pastor_messages.create');
+        $this->actingAs($admin)->post(route('admin.pastor-messages.store'), ['title' => 'Kosong', 'content' => '<p><br>&nbsp;</p>'])->assertSessionHasErrors('content');
+        $this->assertDatabaseCount('pastor_messages', 0);
+    }
+
     public function test_settings_can_be_updated(): void
     {
         $admin = User::factory()->create();

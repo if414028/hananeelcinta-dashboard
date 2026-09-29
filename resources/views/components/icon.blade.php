@@ -1,6 +1,19 @@
 @props(['name', 'size' => 20, 'strokeWidth' => 1.8])
 <svg {{ $attributes->merge(['class' => 'shrink-0']) }} width="{{ $size }}" height="{{ $size }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="{{ $strokeWidth }}" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     @switch($name)
+        @case('bold')<path d="M6 4h7a4 4 0 0 1 0 8H6zm0 8h8a4 4 0 0 1 0 8H6z"/>@break
+        @case('italic')<path d="M10 4h9M5 20h9M15 4 9 20"/>@break
+        @case('underline')<path d="M6 3v8a6 6 0 0 0 12 0V3M4 21h16"/>@break
+        @case('strike')<path d="M17 5c-2-2-10-3-10 2 0 2 2 3 5 4M7 18c3 3 10 3 10-2M3 12h18"/>@break
+        @case('align-left')<path d="M4 5h16M4 10h10M4 15h16M4 20h10"/>@break
+        @case('align-center')<path d="M4 5h16M7 10h10M4 15h16M7 20h10"/>@break
+        @case('align-right')<path d="M4 5h16M10 10h10M4 15h16M10 20h10"/>@break
+        @case('align-justify')<path d="M4 5h16M4 10h16M4 15h16M4 20h16"/>@break
+        @case('list')<path d="M9 5h12M9 12h12M9 19h12M3 5h.01M3 12h.01M3 19h.01"/>@break
+        @case('list-ordered')<path d="M10 6h11M10 17h11M3 3h1v6M2 9h4M2 15c0-3 4-3 4 0 0 2-4 2-4 5h4"/>@break
+        @case('link')<path d="m10 13 4-4M8 16l-2 2a4 4 0 0 1-6-6l5-5a4 4 0 0 1 6 0M16 8l2-2a4 4 0 0 1 6 6l-5 5a4 4 0 0 1-6 0" transform="translate(1 0) scale(.9)"/>@break
+        @case('undo')<path d="m8 4-5 5 5 5M3 9h11a6 6 0 0 1 0 12"/>@break
+        @case('redo')<path d="m16 4 5 5-5 5M21 9H10a6 6 0 0 0 0 12"/>@break
         @case('menu')<path d="M4 7h16M4 12h16M4 17h16"/>@break
         @case('close')<path d="m6 6 12 12M18 6 6 18"/>@break
         @case('arrow-right')<path d="M5 12h14m-6-6 6 6-6 6"/>@break

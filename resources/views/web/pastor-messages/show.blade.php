@@ -7,7 +7,6 @@
             <header class="mx-auto mt-10 max-w-4xl text-center">
                 <p class="text-sm font-bold uppercase tracking-[.04em] text-ink/60"><span class="text-signal">•</span> {{ $pastorMessage->writer }} · {{ $pastorMessage->published_at->format('d M Y') }}</p>
                 <h1 class="mt-6 text-5xl leading-none text-ink md:text-7xl">{{ $pastorMessage->title }}</h1>
-                <p class="mx-auto mt-7 max-w-2xl text-xl leading-8 text-ink/65">{{ $pastorMessage->excerpt }}</p>
                 <div class="mx-auto mt-10 flex max-w-sm items-center gap-4 text-primary/45" aria-hidden="true"><span class="h-px flex-1 bg-current"></span><span class="text-xl">✦</span><span class="h-px flex-1 bg-current"></span></div>
             </header>
             @if($pastorMessage->featured_image)
