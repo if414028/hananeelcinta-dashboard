@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
-use App\Enums\PrayerRequestStatus;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 final class UpdatePrayerRequest extends FormRequest
 {
@@ -17,6 +15,6 @@ final class UpdatePrayerRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['status' => ['required', Rule::enum(PrayerRequestStatus::class)], 'handled_by' => ['nullable', 'exists:users,id'], 'admin_notes' => ['nullable', 'string', 'max:5000']];
+        return ['prayer_result' => ['nullable', 'string', 'max:5000']];
     }
 }

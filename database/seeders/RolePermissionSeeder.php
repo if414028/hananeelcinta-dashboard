@@ -33,6 +33,7 @@ final class RolePermissionSeeder extends Seeder
         }
 
         Role::findOrCreate('Super Admin', 'web')->syncPermissions(Permission::all());
-        Role::findOrCreate('Admin', 'web')->givePermissionTo('dashboard.view');
+        Role::findOrCreate('Admin', 'web')->givePermissionTo(['dashboard.view', 'prayer_requests.view', 'prayer_requests.view_confidential', 'prayer_requests.update']);
+        Role::findOrCreate('Pastor', 'web')->givePermissionTo(['dashboard.view', 'prayer_requests.view', 'prayer_requests.view_confidential', 'prayer_requests.update']);
     }
 }

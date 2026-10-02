@@ -31,7 +31,7 @@ final class DashboardController extends Controller
                 'announcements' => Announcement::query()->count(),
                 'active_announcements' => Announcement::query()->published()->count(),
                 'prayer_requests' => PrayerRequest::query()->count(),
-                'new_prayer_requests' => PrayerRequest::query()->where('status', PrayerRequestStatus::New)->count(),
+                'new_prayer_requests' => PrayerRequest::query()->where('status', PrayerRequestStatus::Open)->count(),
                 'in_prayer_requests' => PrayerRequest::query()->where('status', PrayerRequestStatus::InPrayer)->count(),
                 'family_altars' => FamilyAltar::query()->count(),
                 'pastor_messages' => PastorMessage::query()->count(),

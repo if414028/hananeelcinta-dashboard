@@ -75,7 +75,7 @@ final class PhaseFiveApiTest extends TestCase
     {
         $payload = ['name' => 'Mobile User', 'prayer_category' => 'healing', 'prayer_content' => 'Mohon dukungan doa untuk kesembuhan.', 'is_confidential' => true, 'privacy_accepted' => true, 'source' => 'admin'];
 
-        $this->withHeader('X-App-Platform', 'ios')->postJson('/api/v1/prayer-requests', $payload)->assertCreated()->assertJsonPath('success', true)->assertJsonPath('data.status', 'new')->assertJsonMissing(['admin_notes'])->assertJsonMissing(['ip_address'])->assertJsonStructure(['data' => ['reference_number', 'status', 'submitted_at']]);
+        $this->withHeader('X-App-Platform', 'ios')->postJson('/api/v1/prayer-requests', $payload)->assertCreated()->assertJsonPath('success', true)->assertJsonPath('data.status', 'open')->assertJsonMissing(['admin_notes'])->assertJsonMissing(['ip_address'])->assertJsonStructure(['data' => ['reference_number', 'status', 'submitted_at']]);
         $prayer = PrayerRequest::query()->sole();
         $this->assertSame(PrayerRequestSource::Ios, $prayer->source);
         $this->assertSame('PR-'.now()->format('Ymd').'-0001', $prayer->reference_number);

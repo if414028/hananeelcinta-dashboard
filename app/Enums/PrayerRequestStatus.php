@@ -9,23 +9,31 @@ use App\Enums\Concerns\HasOptions;
 enum PrayerRequestStatus: string
 {
     use HasOptions;
-    case New = 'new';
+    case Open = 'open';
     case InPrayer = 'in_prayer';
-    case FollowUp = 'follow_up';
-    case Answered = 'answered';
     case Closed = 'closed';
 
     public function label(): string
     {
         return match ($this) {
-            self::New => 'Baru', self::InPrayer => 'Sedang Didoakan', self::FollowUp => 'Tindak Lanjut', self::Answered => 'Terjawab', self::Closed => 'Ditutup'
+            self::Open => 'Open', self::InPrayer => 'Sedang Didoakan', self::Closed => 'Selesai'
+        };
+    }
+
+    /** @return list<self> */
+    public function nextStatuses(): array
+    {
+        return match ($this) {
+            self::Open => [self::InPrayer],
+            self::InPrayer => [self::Closed],
+            self::Closed => [],
         };
     }
 
     public function badgeClass(): string
     {
         return match ($this) {
-            self::New => 'warning', self::Answered => 'success', default => 'neutral'
+            self::Open => 'warning', self::Closed => 'success', default => 'neutral'
         };
     }
 }

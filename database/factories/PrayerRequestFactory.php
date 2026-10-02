@@ -19,7 +19,7 @@ final class PrayerRequestFactory extends Factory
             'reference_number' => 'PR-'.now()->format('Ymd').'-'.fake()->unique()->numerify('####'),
             'name' => fake()->name(), 'email' => fake()->safeEmail(), 'phone_number' => fake()->numerify('08##########'),
             'prayer_category' => fake()->randomElement(PrayerRequestCategory::cases()), 'prayer_content' => fake()->paragraph(),
-            'is_anonymous' => false, 'is_confidential' => true, 'status' => PrayerRequestStatus::New,
+            'is_anonymous' => false, 'is_confidential' => true, 'status' => PrayerRequestStatus::Open,
             'source' => PrayerRequestSource::Website, 'ip_address' => fake()->ipv4(), 'user_agent' => fake()->userAgent(),
         ];
     }

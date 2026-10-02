@@ -87,7 +87,7 @@ Item `null` pada array `mk` diabaikan tetapi index aslinya tetap digunakan sebag
 
 Node `users` dipetakan ke tabel `congregations`. NIJ menjadi `member_number`; NIJ duplikat diberi suffix berurutan dan dicatat sebagai warning. Akun dengan `deletedAt` ditandai tidak aktif. Data profil tambahan disimpan pada `notes`, sedangkan password dan FCM token tidak pernah diimpor.
 
-Node `prayerRequest` dipetakan ke tabel `prayer_requests`. Kontak pemohon dilengkapi dari jemaat berdasarkan Firebase UID. Status `OPEN`, `IN_PROGRESS`, dan `DONE` menjadi `new`, `in_prayer`, dan `closed`. Semua data hasil migrasi ditandai rahasia, memakai source `migration`, dan menyimpan jenis permohonan serta handler lama pada catatan admin.
+Node `prayerRequest` dipetakan ke tabel `prayer_requests`. Kontak pemohon dilengkapi dari jemaat berdasarkan Firebase UID. Semua permohonan tanpa pengguna yang mendoakan masuk status `open`; status berubah menjadi `in_prayer` dan pengguna tercatat saat kartu digeser oleh Admin atau Pastor. Jenis permohonan, nama handler lama, dan hasil doa lama disimpan pada kolom terpisah. Metadata UID dan nama handler lama tidak ditampilkan pada papan atau dialog.
 
 Pastor Message dengan `writer` kosong tetap diimpor menggunakan label transparan `Penulis tidak tercantum` dan menghasilkan warning. Label fallback ini dapat disesuaikan melalui `firebase.import.missing_writer` di `config/firebase.php`.
 

@@ -1,7 +1,7 @@
 <x-layouts.admin title="Dashboard">
     <header class="admin-page-header"><div><p class="eyebrow">Ringkasan</p><h1 class="admin-page-title">Dashboard admin</h1><p class="admin-page-subtitle">Pantau pelayanan dan aktivitas konten dari satu tempat.</p></div><span class="inline-flex w-fit items-center gap-2 rounded-full bg-white px-4 py-2 text-sm text-slate"><span class="h-2 w-2 rounded-full bg-emerald-500"></span>Sistem aktif</span></header>
     <div class="grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-4">
-        @foreach([['congregations','Total jemaat','users'],['active_announcements','Pengumuman aktif','bell'],['new_prayer_requests','Prayer request baru','heart'],['published_pastor_messages','Pastor Message terbit','book']] as [$key,$label,$icon])
+        @foreach([['congregations','Total jemaat','users'],['active_announcements','Pengumuman aktif','bell'],['new_prayer_requests','Prayer request open','heart'],['published_pastor_messages','Pastor Message terbit','book']] as [$key,$label,$icon])
             <x-card class="group relative overflow-hidden !bg-primary !p-4 text-white sm:!p-6"><div class="flex items-start justify-between gap-2 sm:gap-4"><div class="min-w-0"><p class="text-xs leading-5 text-white/70 sm:text-sm">{{ $label }}</p><p class="mt-3 text-3xl font-medium sm:mt-4 sm:text-5xl">{{ number_format($summary[$key]) }}</p></div><span class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/10 text-white transition group-hover:bg-white group-hover:text-ink sm:h-12 sm:w-12"><x-icon :name="$icon"/></span></div><div class="absolute -bottom-16 -right-12 h-36 w-36 rounded-full border border-signal-light/40"></div></x-card>
         @endforeach
     </div>

@@ -26,7 +26,7 @@ final class PrayerRequestController extends Controller
     {
         $reference = DB::transaction(function () use ($request, $generator): string {
             $reference = $generator->handle();
-            PrayerRequest::query()->create(array_merge($request->safe()->except(['privacy_accepted', 'website']), ['reference_number' => $reference, 'is_anonymous' => $request->boolean('is_anonymous'), 'is_confidential' => $request->boolean('is_confidential'), 'status' => PrayerRequestStatus::New, 'source' => PrayerRequestSource::Website, 'ip_address' => $request->ip(), 'user_agent' => mb_substr((string) $request->userAgent(), 0, 1000)]));
+            PrayerRequest::query()->create(array_merge($request->safe()->except(['privacy_accepted', 'website']), ['reference_number' => $reference, 'is_anonymous' => $request->boolean('is_anonymous'), 'is_confidential' => $request->boolean('is_confidential'), 'status' => PrayerRequestStatus::Open, 'source' => PrayerRequestSource::Website, 'ip_address' => $request->ip(), 'user_agent' => mb_substr((string) $request->userAgent(), 0, 1000)]));
 
             return $reference;
         });

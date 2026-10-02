@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\PrayerRequestCategory;
-use App\Enums\PrayerRequestSource;
 use App\Enums\PrayerRequestStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdatePrayerRequest;
 use App\Models\PrayerRequest;
-use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -21,50 +21,179 @@ final class PrayerRequestController extends Controller
 {
     public function index(Request $request): View
     {
-        $items = PrayerRequest::query()->when($request->filled('search'), fn ($q) => $q->where(fn ($q) => $q->where('name', 'like', '%'.$request->search.'%')->orWhere('reference_number', 'like', '%'.$request->search.'%')->orWhere('prayer_content', 'like', '%'.$request->search.'%')))->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))->when($request->filled('prayer_category'), fn ($q) => $q->where('prayer_category', $request->prayer_category))->when($request->filled('source'), fn ($q) => $q->where('source', $request->source))->latest()->paginate(15)->withQueryString();
+        $userId = $request->user()->id;
+        $search = trim((string) $request->query('search', ''));
+        $query = PrayerRequest::query()
+            ->with('handler:id,name')
+            ->when(! $request->user()->can('prayer_requests.view_confidential'), fn ($query) => $query->where('is_confidential', false))
+            ->when($search !== '', function ($query) use ($search, $userId): void {
+                $query->where(function ($query) use ($search, $userId): void {
+                    $query->where('reference_number', 'like', '%'.$search.'%')
+                        ->orWhere(function ($query) use ($search, $userId): void {
+                            $query->where(function ($query) use ($userId): void {
+                                $query->whereNull('handled_by')->orWhere('handled_by', $userId);
+                            })->where(function ($query) use ($search): void {
+                                $query->where('name', 'like', '%'.$search.'%')
+                                    ->orWhere('prayer_content', 'like', '%'.$search.'%');
+                            });
+                        });
+                });
+            })
+            ->when($request->filled('prayer_category'), fn ($query) => $query->where('prayer_category', $request->prayer_category));
 
-        return view('admin.resources.index', ['title' => 'Prayer Request', 'routeBase' => 'admin.prayer-requests', 'items' => $items, 'columns' => ['reference' => 'Referensi', 'name' => 'Nama', 'category' => 'Kategori', 'status' => 'Status', 'confidential' => 'Rahasia'], 'rows' => $items->through(fn ($i) => ['id' => $i->id, 'reference' => $i->reference_number, 'name' => $i->is_anonymous ? 'Anonim' : $i->name, 'category' => $i->prayer_category->label(), 'status' => $i->status->label(), 'confidential' => $i->is_confidential ? 'Ya' : 'Tidak']), 'filters' => [['name' => 'status', 'label' => 'Status', 'options' => PrayerRequestStatus::options()], ['name' => 'prayer_category', 'label' => 'Kategori', 'options' => PrayerRequestCategory::options()], ['name' => 'source', 'label' => 'Sumber', 'options' => PrayerRequestSource::options()]], 'bulkRoute' => 'admin.prayer-requests.bulk-status', 'bulkOptions' => PrayerRequestStatus::options()]);
+        $columns = collect(PrayerRequestStatus::cases())->mapWithKeys(
+            fn (PrayerRequestStatus $status) => [
+                $status->value => (clone $query)->where('status', $status)->latest()
+                    ->get(),
+            ]
+        );
+
+        return view('admin.prayer-requests.index', [
+            'columns' => $columns,
+            'statuses' => PrayerRequestStatus::cases(),
+            'filters' => [
+                ['name' => 'prayer_category', 'label' => 'Kategori', 'options' => PrayerRequestCategory::options()],
+            ],
+        ]);
     }
 
-    public function show(Request $request, PrayerRequest $prayerRequest): View
+    public function show(Request $request, PrayerRequest $prayerRequest): JsonResponse|RedirectResponse
     {
-        abort_if($prayerRequest->is_confidential && ! $request->user()->can('prayer_requests.view_confidential'), 403);
+        $this->assertCanView($request, $prayerRequest);
 
-        return view('admin.prayer-requests.show', ['item' => $prayerRequest, 'admins' => User::query()->where('is_active', true)->pluck('name', 'id')]);
+        if (! $request->expectsJson()) {
+            return redirect()->route('admin.prayer-requests.index', ['prayer' => $prayerRequest->id]);
+        }
+
+        $prayerRequest->load('handler:id,name');
+
+        return response()->json(['data' => [
+            'reference' => $prayerRequest->reference_number,
+            'name' => $prayerRequest->is_anonymous ? 'Anonim' : $prayerRequest->name,
+            'category' => $prayerRequest->prayer_category->label(),
+            'request_type' => $prayerRequest->request_type ?? $prayerRequest->prayer_category->label(),
+            'content' => $prayerRequest->prayer_content,
+            'email' => $prayerRequest->email,
+            'phone' => $prayerRequest->phone_number,
+            'submitted_at' => $prayerRequest->created_at->format('d M Y H:i'),
+            'status' => $prayerRequest->status->label(),
+            'handler' => $prayerRequest->legacy_handler_name ?: $prayerRequest->handler?->name,
+            'prayer_result' => $prayerRequest->prayer_result,
+            'update_url' => route('admin.prayer-requests.update', $prayerRequest),
+            'can_update' => $prayerRequest->handled_by !== null
+                && (int) $prayerRequest->handled_by === $request->user()->id
+                && $request->user()->can('prayer_requests.update'),
+        ]]);
     }
 
-    public function update(UpdatePrayerRequest $request, PrayerRequest $prayerRequest): RedirectResponse
+    public function move(Request $request, PrayerRequest $prayerRequest): RedirectResponse|JsonResponse
     {
-        $prayerRequest->update($request->validated() + ['handled_at' => $request->filled('handled_by') ? now() : null]);
+        $validated = $request->validate([
+            'status' => ['required', Rule::enum(PrayerRequestStatus::class)],
+            'expected_status' => ['required', Rule::enum(PrayerRequestStatus::class)],
+            'prayer_result' => ['nullable', 'string', 'max:5000'],
+        ]);
 
-        return back()->with('success', 'Prayer request berhasil diperbarui.');
+        DB::transaction(function () use ($request, $prayerRequest, $validated): void {
+            $item = PrayerRequest::query()->lockForUpdate()->findOrFail($prayerRequest->id);
+            $this->assertConfidentialAccess($request, $item);
+            abort_if($item->handled_by !== null && (int) $item->handled_by !== $request->user()->id, 403, 'Prayer request ini sudah ditangani pengguna lain.');
+            abort_if($item->status->value !== $validated['expected_status'], 409, 'Status sudah berubah. Muat ulang papan.');
+
+            $nextStatus = PrayerRequestStatus::from($validated['status']);
+            abort_unless(in_array($nextStatus, $item->status->nextStatuses(), true), 422, 'Perpindahan status ini tidak tersedia.');
+
+            if ($nextStatus === PrayerRequestStatus::Closed) {
+                $prayerResult = trim((string) ($validated['prayer_result'] ?? ''));
+                abort_if($prayerResult === '', 422, 'Isi hasil doa sebelum memindahkan permohonan ke Selesai.');
+                $item->prayer_result = $prayerResult;
+            }
+
+            if ($item->handled_by === null) {
+                $item->handled_by = $request->user()->id;
+                $item->handled_at = now();
+            }
+            $item->status = $nextStatus;
+            $item->save();
+        });
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $validated['status'] === PrayerRequestStatus::Closed->value
+                ? 'Hasil doa tersimpan dan permohonan selesai.'
+                : 'Status prayer request diperbarui.']);
+        }
+
+        return back()->with('success', $validated['status'] === PrayerRequestStatus::Closed->value
+            ? 'Hasil doa tersimpan dan permohonan selesai.'
+            : 'Status prayer request diperbarui.');
     }
 
-    public function destroy(PrayerRequest $prayerRequest): RedirectResponse
+    public function update(UpdatePrayerRequest $request, PrayerRequest $prayerRequest): RedirectResponse|JsonResponse
     {
-        $prayerRequest->delete();
+        DB::transaction(function () use ($request, $prayerRequest): void {
+            $item = PrayerRequest::query()->lockForUpdate()->findOrFail($prayerRequest->id);
+            $this->assertCanHandle($request, $item);
+            $item->update($request->validated());
+        });
+
+        activity('prayer_requests')->causedBy($request->user())->performedOn($prayerRequest)->event('result_updated')->log('Hasil doa prayer request diperbarui');
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Hasil doa tersimpan.']);
+        }
+
+        return redirect()->route('admin.prayer-requests.index', ['prayer' => $prayerRequest->id])->with('success', 'Hasil doa tersimpan.');
+    }
+
+    public function destroy(Request $request, PrayerRequest $prayerRequest): RedirectResponse
+    {
+        DB::transaction(function () use ($request, $prayerRequest): void {
+            $item = PrayerRequest::query()->lockForUpdate()->findOrFail($prayerRequest->id);
+            $this->assertCanHandle($request, $item);
+            $item->delete();
+        });
 
         return redirect()->route('admin.prayer-requests.index')->with('success', 'Prayer request berhasil dihapus.');
     }
 
-    public function bulkUpdate(Request $request): RedirectResponse
+    public function export(Request $request): StreamedResponse
     {
-        $validated = $request->validate(['ids' => ['required', 'array', 'max:100'], 'ids.*' => ['integer', 'exists:prayer_requests,id'], 'status' => ['required', Rule::enum(PrayerRequestStatus::class)]]);
-        PrayerRequest::query()->whereKey($validated['ids'])->update(['status' => $validated['status'], 'updated_at' => now()]);
-        activity('prayer_requests')->causedBy($request->user())->event('bulk_status_updated')->withProperties(['ids' => $validated['ids'], 'status' => $validated['status']])->log('Status prayer request diperbarui secara massal');
+        abort_unless($request->user()->can('prayer_requests.view'), 403);
+        $userId = $request->user()->id;
+        $canViewConfidential = $request->user()->can('prayer_requests.view_confidential');
 
-        return back()->with('success', count($validated['ids']).' prayer request berhasil diperbarui.');
-    }
-
-    public function export(): StreamedResponse
-    {
-        abort_unless(request()->user()->can('prayer_requests.export'), 403);
-
-        return response()->streamDownload(function () {
+        return response()->streamDownload(function () use ($userId, $canViewConfidential): void {
             $out = fopen('php://output', 'w');
             fputcsv($out, ['Referensi', 'Nama', 'Kategori', 'Status', 'Sumber', 'Tanggal']);
-            PrayerRequest::query()->orderBy('id')->chunk(500, fn ($rows) => $rows->each(fn ($i) => fputcsv($out, [$i->reference_number, $i->is_anonymous ? 'Anonim' : $i->name, $i->prayer_category->label(), $i->status->label(), $i->source->label(), $i->created_at])));
+            PrayerRequest::query()->where('handled_by', $userId)
+                ->when(! $canViewConfidential, fn ($query) => $query->where('is_confidential', false))
+                ->orderBy('id')->chunk(500, fn ($rows) => $rows->each(fn ($item) => fputcsv($out, [
+                    $item->reference_number,
+                    $item->is_anonymous ? 'Anonim' : $item->name,
+                    $item->prayer_category->label(),
+                    $item->status->label(),
+                    $item->source->label(),
+                    $item->created_at,
+                ])));
             fclose($out);
         }, 'prayer-request-'.now()->format('Ymd').'.csv');
+    }
+
+    private function assertCanHandle(Request $request, PrayerRequest $item): void
+    {
+        $this->assertCanView($request, $item);
+        abort_unless($item->handled_by !== null && (int) $item->handled_by === $request->user()->id, 403, 'Hanya yang mendoakan dapat mengubah prayer request ini.');
+    }
+
+    private function assertCanView(Request $request, PrayerRequest $item): void
+    {
+        $this->assertConfidentialAccess($request, $item);
+        abort_if($item->handled_by !== null && (int) $item->handled_by !== $request->user()->id, 403, 'Prayer request ini sudah ditangani pengguna lain.');
+    }
+
+    private function assertConfidentialAccess(Request $request, PrayerRequest $item): void
+    {
+        abort_unless($request->user()->can('prayer_requests.view'), 403);
+        abort_if($item->is_confidential && ! $request->user()->can('prayer_requests.view_confidential'), 403);
     }
 }

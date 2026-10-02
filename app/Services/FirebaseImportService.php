@@ -271,7 +271,7 @@ final class FirebaseImportService
             $warnings[] = "prayer-requests[{$legacyKey}].prayDesc kosong; menggunakan keterangan pengganti.";
         }
         $createdAt = $this->timestamp($record['id'] ?? $legacyKey, "prayer-requests[{$legacyKey}].id", $warnings);
-        $status = $this->prayerRequestStatus($record['status'] ?? null);
+        $status = PrayerRequestStatus::Open;
         $data = [
             'legacy_firebase_key' => $legacyKey,
             'reference_number' => $this->uniquePrayerReference($legacyKey, $existing?->id),
@@ -279,12 +279,15 @@ final class FirebaseImportService
             'email' => $congregation?->email,
             'phone_number' => $congregation?->phone_number,
             'prayer_category' => $this->prayerRequestCategory($record['prayType'] ?? null),
+            'request_type' => $this->nullableScalar($record['prayType'] ?? null),
             'prayer_content' => $content,
             'is_anonymous' => false,
             'is_confidential' => true,
             'status' => $status,
-            'admin_notes' => $this->prayerRequestNotes($record),
+            'admin_notes' => null,
+            'prayer_result' => $this->nullableScalar($record['prayResult'] ?? null),
             'handled_by' => null,
+            'legacy_handler_name' => $this->nullableScalar($record['handlerName'] ?? null),
             'handled_at' => null,
             'source' => PrayerRequestSource::Migration,
             'ip_address' => null,
@@ -556,35 +559,6 @@ final class FirebaseImportService
             'kunjungan' => PrayerRequestCategory::Ministry,
             default => PrayerRequestCategory::Other,
         };
-    }
-
-    private function prayerRequestStatus(mixed $value): PrayerRequestStatus
-    {
-        return match (Str::upper($this->nullableScalar($value) ?? '')) {
-            'IN_PROGRESS', 'IN PROGRESS' => PrayerRequestStatus::InPrayer,
-            'DONE', 'CLOSED' => PrayerRequestStatus::Closed,
-            default => PrayerRequestStatus::New,
-        };
-    }
-
-    private function prayerRequestNotes(array $record): ?string
-    {
-        $fields = [
-            'prayType' => 'Jenis permohonan Firebase',
-            'requesterId' => 'Firebase UID pemohon',
-            'handlerId' => 'Firebase UID handler',
-            'handlerName' => 'Nama handler lama',
-            'prayResult' => 'Hasil/catatan penanganan lama',
-        ];
-        $lines = [];
-        foreach ($fields as $key => $label) {
-            $value = $this->nullableScalar($record[$key] ?? null);
-            if ($value !== null) {
-                $lines[] = "{$label}: {$value}";
-            }
-        }
-
-        return $lines === [] ? null : implode("\n", $lines);
     }
 
     private function requiredString(array $record, string $key): string

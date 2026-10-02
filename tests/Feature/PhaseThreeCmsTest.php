@@ -8,6 +8,7 @@ use App\Enums\BaptismStatus;
 use App\Enums\CongregationGender;
 use App\Enums\CongregationMembershipStatus;
 use App\Enums\PastorMessageStatus;
+use App\Enums\PrayerRequestStatus;
 use App\Models\Congregation;
 use App\Models\PastorMessage;
 use App\Models\PrayerRequest;
@@ -105,11 +106,11 @@ final class PhaseThreeCmsTest extends TestCase
     {
         $admin = User::factory()->create();
         $admin->givePermissionTo('prayer_requests.view');
-        $prayer = PrayerRequest::factory()->create(['is_confidential' => true]);
+        $prayer = PrayerRequest::factory()->create(['is_confidential' => true, 'handled_by' => $admin->id, 'status' => PrayerRequestStatus::InPrayer]);
 
         $this->actingAs($admin)->get(route('admin.prayer-requests.show', $prayer))->assertForbidden();
         $admin->givePermissionTo('prayer_requests.view_confidential');
-        $this->actingAs($admin)->get(route('admin.prayer-requests.show', $prayer))->assertOk();
+        $this->actingAs($admin)->getJson(route('admin.prayer-requests.show', $prayer))->assertOk();
     }
 
     public function test_pastor_message_content_is_sanitized(): void
@@ -167,13 +168,13 @@ final class PhaseThreeCmsTest extends TestCase
         $this->assertSame('Nama Gereja Baru', $settings->get('church_name'));
     }
 
-    public function test_prayer_status_can_be_updated_in_bulk(): void
+    public function test_prayer_bulk_status_route_is_removed(): void
     {
         $admin = User::factory()->create();
         $admin->givePermissionTo('prayer_requests.update');
         $requests = PrayerRequest::factory(2)->create();
 
-        $this->actingAs($admin)->patch(route('admin.prayer-requests.bulk-status'), ['ids' => $requests->pluck('id')->all(), 'status' => 'in_prayer'])->assertRedirect();
-        $this->assertSame(2, PrayerRequest::query()->where('status', 'in_prayer')->count());
+        $this->actingAs($admin)->patch('/admin/prayer-requests/bulk-status', ['ids' => $requests->pluck('id')->all(), 'status' => 'in_prayer'])->assertNotFound();
+        $this->assertSame(2, PrayerRequest::query()->where('status', 'open')->count());
     }
 }

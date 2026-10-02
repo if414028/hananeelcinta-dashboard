@@ -23,7 +23,7 @@ final class PrayerRequestController extends Controller
                 'android' => PrayerRequestSource::Android, 'ios' => PrayerRequestSource::Ios, default => PrayerRequestSource::Website
             };
 
-            return PrayerRequest::query()->create(array_merge($request->safe()->except(['privacy_accepted', 'client_platform']), ['reference_number' => $generator->handle(), 'is_anonymous' => $request->boolean('is_anonymous'), 'is_confidential' => $request->boolean('is_confidential'), 'status' => PrayerRequestStatus::New, 'source' => $source, 'ip_address' => $request->ip(), 'user_agent' => mb_substr((string) $request->userAgent(), 0, 1000)]));
+            return PrayerRequest::query()->create(array_merge($request->safe()->except(['privacy_accepted', 'client_platform']), ['reference_number' => $generator->handle(), 'is_anonymous' => $request->boolean('is_anonymous'), 'is_confidential' => $request->boolean('is_confidential'), 'status' => PrayerRequestStatus::Open, 'source' => $source, 'ip_address' => $request->ip(), 'user_agent' => mb_substr((string) $request->userAgent(), 0, 1000)]));
         });
 
         return ApiResponse::success(['reference_number' => $prayer->reference_number, 'status' => $prayer->status->value, 'submitted_at' => $prayer->created_at->toAtomString()], 'Prayer request submitted successfully.', 201);

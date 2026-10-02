@@ -191,10 +191,12 @@ final class PhaseSixFirebaseMigrationTest extends TestCase
         $this->assertSame('jemaat@example.com', $prayer->email);
         $this->assertSame('+628123456789', $prayer->phone_number);
         $this->assertSame(PrayerRequestCategory::Ministry, $prayer->prayer_category);
-        $this->assertSame(PrayerRequestStatus::InPrayer, $prayer->status);
+        $this->assertSame(PrayerRequestStatus::Open, $prayer->status);
         $this->assertSame(PrayerRequestSource::Migration, $prayer->source);
         $this->assertTrue($prayer->is_confidential);
-        $this->assertStringContainsString('Pelayan Lama', (string) $prayer->admin_notes);
+        $this->assertSame('Kunjungan', $prayer->request_type);
+        $this->assertSame('Pelayan Lama', $prayer->legacy_handler_name);
+        $this->assertNull($prayer->admin_notes);
         $this->assertSame(1, $rerun['totals']['skipped']);
     }
 

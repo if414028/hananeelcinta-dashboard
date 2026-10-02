@@ -45,7 +45,7 @@ Route::middleware(['auth', 'active'])->group(function (): void {
         ->middlewareFor(['index', 'show'], 'permission:announcements.view')->middlewareFor(['create', 'store'], 'permission:announcements.create')->middlewareFor(['edit', 'update'], 'permission:announcements.update')->middlewareFor('destroy', 'permission:announcements.delete');
 
     Route::get('prayer-requests/export', [PrayerRequestController::class, 'export'])->middleware('permission:prayer_requests.export')->name('prayer-requests.export');
-    Route::patch('prayer-requests/bulk-status', [PrayerRequestController::class, 'bulkUpdate'])->middleware('permission:prayer_requests.update')->name('prayer-requests.bulk-status');
+    Route::patch('prayer-requests/{prayerRequest}/status', [PrayerRequestController::class, 'move'])->middleware('permission:prayer_requests.update')->name('prayer-requests.move');
     Route::resource('prayer-requests', PrayerRequestController::class)->parameters(['prayer-requests' => 'prayerRequest'])->only(['index', 'show', 'update', 'destroy'])
         ->middlewareFor(['index', 'show'], 'permission:prayer_requests.view')->middlewareFor('update', 'permission:prayer_requests.update')->middlewareFor('destroy', 'permission:prayer_requests.delete');
 

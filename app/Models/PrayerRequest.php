@@ -22,7 +22,7 @@ final class PrayerRequest extends Model
 
     protected $guarded = ['id'];
 
-    protected $hidden = ['admin_notes', 'handled_by', 'ip_address', 'user_agent'];
+    protected $hidden = ['admin_notes', 'prayer_result', 'handled_by', 'ip_address', 'user_agent'];
 
     protected function casts(): array
     {
