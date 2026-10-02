@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Api\V1\MobileCongregationResource;
+use App\Http\Resources\Api\V1\MobileAccountResource;
 use App\Models\MobileAccount;
 use App\Support\ApiResponse;
 use Illuminate\Http\JsonResponse;
@@ -29,16 +29,6 @@ final class MobileSessionController extends Controller
         /** @var MobileAccount $account */
         $account = $request->attributes->get('mobile_account');
 
-        return [
-            'account' => [
-                'id' => $account->id,
-                'uid' => $account->firebase_uid,
-                'email' => $account->email,
-                'email_verified' => $account->email_verified_at !== null,
-                'providers' => $account->provider_ids ?? [],
-                'authenticated_at' => $account->last_authenticated_at?->toAtomString(),
-            ],
-            'profile' => (new MobileCongregationResource($account->congregation))->resolve($request),
-        ];
+        return (new MobileAccountResource($account))->resolve($request);
     }
 }

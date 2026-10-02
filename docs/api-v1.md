@@ -58,6 +58,7 @@ List menggunakan `meta` (`current_page`, `last_page`, `per_page`, `total`) dan `
 | POST | `/prayer-requests` | Tidak | Kirim Prayer Request |
 | POST | `/auth/session` | Firebase | Sinkronisasi sesi/profil mobile |
 | GET | `/me` | Firebase | Profil mobile saat ini |
+| POST | `/auth/register` | Firebase | Daftarkan profil jemaat baru setelah signup Firebase |
 
 ### Filter list
 
@@ -112,7 +113,7 @@ Ketentuan:
 
 ### Firebase Auth Bridge
 
-Untuk `/auth/session` dan `/me`, ambil Firebase ID token setelah pengguna login di aplikasi mobile:
+Untuk `/auth/session`, `/me`, dan `/auth/register`, ambil Firebase ID token setelah pengguna login di aplikasi mobile:
 
 ```http
 Authorization: Bearer <FIREBASE_ID_TOKEN>
@@ -133,13 +134,15 @@ Ketika batas terlampaui, server mengembalikan `429 Too Many Requests`. Klien har
 ## Status HTTP
 
 - `200` berhasil
-- `201` Prayer Request dibuat
+- `201` Prayer Request atau profil jemaat dibuat
 - `401` token Firebase hilang/tidak valid/kedaluwarsa
 - `403` akun mobile nonaktif, konflik mapping, atau UID belum dipetakan
 - `404` resource tidak ditemukan
+- `409` UID/email sudah terdaftar saat registrasi (termasuk data terhapus)
 - `422` validasi gagal
 - `429` rate limit terlampaui
 - `500` kesalahan server
+- `503` layanan verifikasi Firebase sementara tidak tersedia
 
 ## Cache
 

@@ -4,6 +4,7 @@ use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\AttachRequestId;
 use App\Http\Middleware\AuthenticateFirebaseMobile;
 use App\Http\Middleware\EnsureUserIsActive;
+use App\Http\Middleware\VerifyFirebaseToken;
 use App\Support\ApiResponse;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Application;
@@ -37,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'active' => EnsureUserIsActive::class,
             'auth.firebase' => AuthenticateFirebaseMobile::class,
+            'firebase.token' => VerifyFirebaseToken::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,

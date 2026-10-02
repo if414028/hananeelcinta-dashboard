@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Auth\Contracts\FirebaseTokenVerifier;
-use App\Exceptions\FirebaseAuthUnavailableException;
-use App\Exceptions\FirebaseTokenException;
+use App\Auth\VerifiedFirebaseToken;
 use App\Exceptions\MobileAccountUnavailableException;
 use App\Models\Congregation;
 use App\Models\MobileAccount;
@@ -19,17 +17,12 @@ use Throwable;
 
 final class AuthenticateFirebaseMobile
 {
-    public function __construct(private readonly FirebaseTokenVerifier $verifier) {}
-
     public function handle(Request $request, Closure $next): Response
     {
-        $bearerToken = $request->bearerToken();
-        if (! is_string($bearerToken) || $bearerToken === '') {
-            return ApiResponse::error('Firebase ID token is required.', 401);
-        }
+        /** @var VerifiedFirebaseToken $verified */
+        $verified = $request->attributes->get('firebase_token');
 
         try {
-            $verified = $this->verifier->verify($bearerToken);
             $congregation = Congregation::query()->where('legacy_firebase_uid', $verified->uid)->first();
             if ($congregation === null) {
                 return ApiResponse::error('Mobile account is not linked to congregation data.', 403);
@@ -72,10 +65,6 @@ final class AuthenticateFirebaseMobile
             });
         } catch (MobileAccountUnavailableException) {
             return ApiResponse::error('Mobile account is inactive or has a mapping conflict.', 403);
-        } catch (FirebaseTokenException) {
-            return ApiResponse::error('Firebase ID token is invalid or account is unavailable.', 401);
-        } catch (FirebaseAuthUnavailableException) {
-            return ApiResponse::error('Authentication service is temporarily unavailable.', 503);
         } catch (Throwable $exception) {
             report($exception);
 

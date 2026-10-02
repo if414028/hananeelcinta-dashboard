@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\AnnouncementController;
 use App\Http\Controllers\Api\V1\ConfigController;
 use App\Http\Controllers\Api\V1\FamilyAltarController;
 use App\Http\Controllers\Api\V1\HomeController;
+use App\Http\Controllers\Api\V1\MobileRegistrationController;
 use App\Http\Controllers\Api\V1\MobileSessionController;
 use App\Http\Controllers\Api\V1\PastorMessageController;
 use App\Http\Controllers\Api\V1\PrayerRequestController;
@@ -26,7 +27,11 @@ Route::prefix('v1')->middleware('throttle:prayer-request')->group(function (): v
     Route::post('/prayer-requests', PrayerRequestController::class)->name('api.v1.prayer-requests.store');
 });
 
-Route::prefix('v1')->middleware(['throttle:mobile-auth', 'auth.firebase'])->group(function (): void {
-    Route::post('/auth/session', [MobileSessionController::class, 'store'])->name('api.v1.auth.session');
-    Route::get('/me', [MobileSessionController::class, 'show'])->name('api.v1.me');
+Route::prefix('v1')->middleware(['throttle:mobile-auth', 'firebase.token'])->group(function (): void {
+    Route::post('/auth/register', MobileRegistrationController::class)->name('api.v1.auth.register');
+
+    Route::middleware('auth.firebase')->group(function (): void {
+        Route::post('/auth/session', [MobileSessionController::class, 'store'])->name('api.v1.auth.session');
+        Route::get('/me', [MobileSessionController::class, 'show'])->name('api.v1.me');
+    });
 });
