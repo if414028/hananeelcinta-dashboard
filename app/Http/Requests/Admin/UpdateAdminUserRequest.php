@@ -16,6 +16,6 @@ final class UpdateAdminUserRequest extends StoreAdminUserRequest
 
     public function rules(): array
     {
-        return ['name' => ['required', 'string', 'max:255'], 'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->route('adminUser'))], 'password' => ['nullable', 'confirmed', Password::defaults()], 'role' => ['required', 'exists:roles,name'], 'is_active' => ['sometimes', 'boolean']];
+        return ['congregation_id' => $this->congregationRules(), 'name' => ['required', 'string', 'max:255'], 'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->route('adminUser'))], 'password' => ['nullable', 'confirmed', Password::defaults()], 'role' => ['required', 'exists:roles,name'], 'is_active' => ['sometimes', 'boolean']];
     }
 }

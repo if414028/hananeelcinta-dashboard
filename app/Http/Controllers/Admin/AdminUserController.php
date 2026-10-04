@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreAdminUserRequest;
 use App\Http\Requests\Admin\UpdateAdminUserRequest;
+use App\Models\Congregation;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,9 +19,9 @@ final class AdminUserController extends Controller
 {
     public function index(Request $request): View
     {
-        $users = User::query()->with('roles')->when($request->string('search')->isNotEmpty(), fn ($q) => $q->where(fn ($q) => $q->where('name', 'like', '%'.$request->search.'%')->orWhere('email', 'like', '%'.$request->search.'%')))->latest()->paginate(15)->withQueryString();
+        $users = User::query()->with('roles', 'congregation')->when($request->string('search')->isNotEmpty(), fn ($q) => $q->where(fn ($q) => $q->where('name', 'like', '%'.$request->search.'%')->orWhere('email', 'like', '%'.$request->search.'%')))->latest()->paginate(15)->withQueryString();
 
-        return view('admin.resources.index', ['title' => 'Admin Users', 'routeBase' => 'admin.admin-users', 'createPermission' => 'admins.create', 'items' => $users, 'columns' => ['name' => 'Nama', 'email' => 'Email', 'role' => 'Role', 'active' => 'Status'], 'rows' => $users->through(fn (User $user) => ['id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'role' => $user->getRoleNames()->join(', '), 'active' => $user->is_active ? 'Aktif' : 'Nonaktif'])]);
+        return view('admin.resources.index', ['title' => 'Admin Users', 'routeBase' => 'admin.admin-users', 'createPermission' => 'admins.create', 'items' => $users, 'columns' => ['name' => 'Nama', 'email' => 'Email', 'congregation' => 'Jemaat', 'role' => 'Role', 'active' => 'Status'], 'rows' => $users->through(fn (User $user) => ['id' => $user->id, 'name' => $user->name, 'email' => $user->email, 'congregation' => $user->congregation ? $user->congregation->full_name.' ('.$user->congregation->member_number.')' : '-', 'role' => $user->getRoleNames()->join(', '), 'active' => $user->is_active ? 'Aktif' : 'Nonaktif'])]);
     }
 
     public function create(): View
@@ -43,7 +44,7 @@ final class AdminUserController extends Controller
 
     public function show(User $adminUser): View
     {
-        return view('admin.resources.show', ['title' => 'Detail Admin', 'routeBase' => 'admin.admin-users', 'item' => $adminUser, 'details' => ['Nama' => $adminUser->name, 'Email' => $adminUser->email, 'Role' => $adminUser->getRoleNames()->join(', '), 'Status' => $adminUser->is_active ? 'Aktif' : 'Nonaktif', 'Login terakhir' => $adminUser->last_login_at?->format('d M Y H:i') ?? '-']]);
+        return view('admin.resources.show', ['title' => 'Detail Admin', 'routeBase' => 'admin.admin-users', 'item' => $adminUser, 'details' => ['Nama' => $adminUser->name, 'Email' => $adminUser->email, 'Jemaat' => $adminUser->congregation ? $adminUser->congregation->full_name.' ('.$adminUser->congregation->member_number.')' : '-', 'Role' => $adminUser->getRoleNames()->join(', '), 'Status' => $adminUser->is_active ? 'Aktif' : 'Nonaktif', 'Login terakhir' => $adminUser->last_login_at?->format('d M Y H:i') ?? '-']]);
     }
 
     public function edit(User $adminUser): View
@@ -75,13 +76,31 @@ final class AdminUserController extends Controller
         if ($adminUser->hasRole('Super Admin')) {
             abort_if(User::role('Super Admin')->count() <= 1, 422, 'Super Admin terakhir tidak dapat dihapus.');
         }
-        $adminUser->delete();
+        DB::transaction(function () use ($adminUser): void {
+            // Release the unique link so this congregation can be assigned to a new admin.
+            $adminUser->update(['congregation_id' => null]);
+            $adminUser->delete();
+        });
 
         return back()->with('success', 'Admin berhasil dihapus.');
     }
 
     private function form(User $item, string $title): View
     {
-        return view('admin.resources.form', ['title' => $title, 'routeBase' => 'admin.admin-users', 'item' => $item, 'fields' => [['name' => 'name', 'label' => 'Nama', 'required' => true], ['name' => 'email', 'label' => 'Email', 'type' => 'email', 'required' => true], ['name' => 'role', 'label' => 'Role', 'type' => 'select', 'options' => Role::query()->pluck('name', 'name'), 'value' => $item->getRoleNames()->first()], ['name' => 'password', 'label' => 'Password', 'type' => 'password'], ['name' => 'password_confirmation', 'label' => 'Konfirmasi Password', 'type' => 'password'], ['name' => 'is_active', 'label' => 'Admin aktif', 'type' => 'checkbox', 'value' => $item->exists ? $item->is_active : true]]]);
+        $linkedCongregations = User::withTrashed()
+            ->whereNotNull('congregation_id')
+            ->when($item->exists, fn ($query) => $query->whereKeyNot($item->id))
+            ->select('congregation_id');
+        $congregations = Congregation::query()
+            ->whereNotIn('id', $linkedCongregations)
+            ->orderBy('full_name')
+            ->get(['id', 'full_name', 'member_number', 'email', 'is_active']);
+
+        return view('admin.admin-users.form', [
+            'title' => $title,
+            'item' => $item,
+            'congregations' => $congregations,
+            'roles' => Role::query()->pluck('name', 'name'),
+        ]);
     }
 }

@@ -106,6 +106,7 @@ final class PhaseSixPointFiveAuthBridgeTest extends TestCase
             ->assertJsonPath('data.account.email', 'firebase@example.com')
             ->assertJsonPath('data.profile.id', $congregation->id)
             ->assertJsonPath('data.profile.member_number', $congregation->member_number)
+            ->assertJsonPath('data.profile.role', 'User')
             ->assertJsonMissing(['notes' => 'Internal family information'])
             ->assertJsonMissing(['legacy_firebase_uid' => 'linked-uid']);
 

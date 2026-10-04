@@ -169,6 +169,7 @@ Contoh struktur response `/me` (field profil lainnya juga tersedia sesuai resour
       "id": 1,
       "member_number": "HC-2026-00001",
       "full_name": "Maria Santoso",
+      "role": "User",
       "gender": "female",
       "email": "maria@example.com",
       "address": {
@@ -185,6 +186,17 @@ Contoh struktur response `/me` (field profil lainnya juga tersedia sesuai resour
 ```
 
 `data.account` berasal dari identitas Firebase yang terverifikasi. `data.profile` berasal dari CMS, sehingga perubahan nama/alamat oleh admin tersedia pada request berikutnya. Email profil CMS dan email akun Firebase dapat berbeda jika data profil diedit oleh admin.
+
+### Role admin mobile
+
+`data.profile.role` tersedia pada response `/auth/session`, `/me`, dan `/auth/register`:
+
+- `SuperUser`: jemaat terhubung ke akun Admin Users CMS yang aktif, belum dihapus, dan memiliki role CMS (Super Admin, Admin, atau Pastor).
+- `User`: jemaat tidak memiliki akun admin aktif dengan role CMS.
+
+Untuk menjadikan jemaat admin, buka **Admin Users → Tambah data**, pilih **Hubungkan ke jemaat**, lalu isi role CMS dan password CMS. Nama/email otomatis diisi dari jemaat dan dapat disesuaikan. Untuk akun admin CMS yang sudah ada, pilih jemaat melalui **Edit**. Satu jemaat hanya dapat terhubung ke satu akun admin. Admin CMS tanpa hubungan jemaat tetap dapat digunakan seperti sebelumnya.
+
+Status mobile dihitung dari hubungan `users.congregation_id`, bukan kecocokan email atau catatan `Role Firebase` hasil impor. Menonaktifkan, menghapus, atau melepas hubungan jemaat dari admin mengembalikan role mobile menjadi `User` pada request berikutnya. Menghapus admin juga melepaskan hubungan agar jemaat dapat dipilih untuk akun admin baru. Nilai `SuperUser` di mobile tidak mengubah permission role CMS; login mobile tetap memakai token Firebase.
 
 ## Integrasi Mobile
 

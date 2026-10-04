@@ -49,6 +49,18 @@ final class Congregation extends Model
         return $this->hasOne(MobileAccount::class);
     }
 
+    public function adminUser(): HasOne
+    {
+        return $this->hasOne(User::class);
+    }
+
+    public function mobileRole(): string
+    {
+        return $this->adminUser()->where('is_active', true)->whereHas('roles')->exists()
+            ? 'SuperUser'
+            : 'User';
+    }
+
     public function profilePhotoUrl(): ?string
     {
         if ($this->profile_photo) {

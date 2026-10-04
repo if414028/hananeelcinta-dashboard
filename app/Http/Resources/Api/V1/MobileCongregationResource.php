@@ -15,6 +15,7 @@ final class MobileCongregationResource extends JsonResource
             'id' => $this->id,
             'member_number' => $this->member_number,
             'full_name' => $this->full_name,
+            'role' => $this->resource->mobileRole(),
             'nickname' => $this->nickname,
             'gender' => $this->gender->value,
             'place_of_birth' => $this->place_of_birth,
