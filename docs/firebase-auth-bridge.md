@@ -82,32 +82,69 @@ X-App-Version: 1.0.0
   "full_name": "Maria Santoso",
   "gender": "female",
   "nickname": "Maria",
+  "place_of_birth": "Jakarta",
   "date_of_birth": "1995-06-20",
-  "phone_number": "+628123456789",
+  "phone_number": "08123456789",
   "address": "Jalan Gereja 1",
-  "city": "Jakarta"
+  "city": "Jakarta",
+  "blood_type": "AB",
+  "last_education": "D1, D2, D3",
+  "occupation": "Wiraswasta",
+  "marital_status": "married",
+  "baptism_status": "baptized",
+  "baptism_date": "2015-01-02",
+  "baptism_church": "Gereja tempat baptis",
+  "holy_spirit_baptism": true,
+  "church_origin": "Gereja asal",
+  "reason_to_move_church": "Pindah domisili",
+  "family_status": "Istri",
+  "husband_name": "Nama suami",
+  "children_names": ["Anak pertama", "Anak kedua"],
+  "siblings_names": ["Saudara pertama", "Saudara kedua"]
 }
 ```
 
-Field wajib: `full_name` (maksimal 255 karakter) dan `gender` (`male` atau `female`).
+Tanpa foto, kirim JSON. Dengan foto, kirim `multipart/form-data` dan file JPEG pada `profile_photo`, maksimal 5 MiB (5120 KiB). Foto disimpan di disk public CMS pada direktori `congregations`; URL dikembalikan sebagai `profile_photo_url`. Pastikan `php artisan storage:link` sudah tersedia pada deployment. Biarkan HTTP client menentukan boundary multipart.
+
+| Field wajib | Ketentuan |
+|---|---|
+| `full_name` | String, maksimal 255 karakter |
+| `gender` | `male` atau `female` |
+| `place_of_birth` | String, maksimal 100 karakter |
+| `date_of_birth` | `YYYY-MM-DD`, sebelum hari ini |
+| `phone_number` | String angka dan simbol telepon `+() .-`, 7–30 karakter setelah normalisasi awalan `0` menjadi `+62` |
+| `address` | String alamat, maksimal 2000 karakter |
+| `blood_type` | `A`, `B`, `AB`, atau `O` |
+| `last_education` | String label pendidikan, maksimal 100 karakter; label lama SD, SMP, SMA, `D1, D2, D3`, S1, S2, S3, Lainnya dipertahankan |
+| `occupation` | String, maksimal 150 karakter; boleh memuat detail pekerjaan |
+| `marital_status` | `single`, `married`, `widowed`, `divorced` |
 
 | Field opsional | Ketentuan |
 |---|---|
 | `nickname` | Maksimal 100 karakter |
-| `place_of_birth` | Maksimal 100 karakter |
-| `date_of_birth` | `YYYY-MM-DD`, sebelum hari ini |
-| `marital_status` | `single`, `married`, `widowed`, `divorced` |
-| `phone_number`, `whatsapp_number` | 7–30 karakter angka dan simbol telepon `+() .-` |
-| `address` | String alamat, maksimal 2000 karakter |
+| `whatsapp_number` | 7–30 karakter angka dan simbol telepon `+() .-` |
 | `city`, `province` | Maksimal 100 karakter |
 | `postal_code` | Maksimal 10 karakter |
-| `occupation` | Maksimal 150 karakter |
 | `baptism_status` | `unknown` (default), `not_baptized`, `baptized` |
 | `baptism_date` | Wajib jika `baptism_status=baptized`; `YYYY-MM-DD`, tidak di masa depan; hanya berlaku untuk status baptized |
+| `baptism_church` | String, maksimal 255 karakter; tetap disimpan untuk status selain baptized |
+| `holy_spirit_baptism` | Boolean JSON; multipart menggunakan `1`/`0`; jika belum dipilih, hilangkan field |
+| `church_origin` | String, maksimal 255 karakter |
+| `reason_to_move_church` | String, maksimal 2000 karakter |
+| `family_status` | String label keluarga, maksimal 100 karakter: Kepala Keluarga, Istri, Anak, Janda, Duda, Single - Belum Menikah |
+| `wife_name`, `husband_name` | String, masing-masing maksimal 255 karakter |
+| `children_names`, `siblings_names` | Array string, masing-masing nama maksimal 255 karakter |
+| `profile_photo` | File JPEG, maksimal 5 MiB; hanya dikirim melalui multipart |
+
+Field teks opsional yang kosong diabaikan. Nama anak/saudara menggunakan array JSON atau field multipart berulang `children_names[]` / `siblings_names[]`; entri teks kosong diabaikan. Nilai `holy_spirit_baptism=false` atau multipart `0` tetap disimpan.
+
+Untuk `family_status=Kepala Keluarga`, `husband_name` diabaikan; untuk Istri, `wife_name` diabaikan; untuk Anak, `children_names` diabaikan. Field tersembunyi ini tidak divalidasi atau disimpan meskipun dikirim. Status keluarga lainnya menerima ketiga field.
 
 UID dan email berasal dari token Firebase, termasuk untuk akun tanpa email (misalnya login telepon). Email body diabaikan. NIJ dibuat otomatis; `membership_status` awal `visitor`, `is_active=true`, dan `joined_at` hari registrasi. Field internal/admin dan field lain di luar daftar validasi diabaikan. Status keanggotaan dapat diubah oleh admin melalui CMS.
 
-Response `201` memakai struktur `data.account` dan `data.profile` yang sama dengan `/me` dan `/auth/session`. Registrasi menyimpan profil serta mobile account dalam satu transaksi. Request ulang untuk UID yang sudah terdaftar menghasilkan `409` tanpa mengubah profil; akun/profil terhapus atau nonaktif tidak dibuat ulang.
+Response `201` memakai struktur `data.account` dan `data.profile` yang sama dengan `/me` dan `/auth/session`. Semua field tambahan dikembalikan pada `data.profile`; `holy_spirit_baptism` berupa boolean atau `null` jika belum dipilih, dan `children_names` / `siblings_names` selalu berupa array (default `[]`). Bentuk alamat tetap objek `address.street`, `address.city`, `address.province`, dan `address.postal_code`. Tanpa foto CMS atau URL foto legacy yang tersimpan, `profile_photo_url=null`; API tidak membuat URL Firebase Storage berdasarkan UID.
+
+Registrasi menyimpan profil serta mobile account dalam satu transaksi. Jika transaksi gagal, foto upload dibersihkan. Jika foto gagal disimpan, registrasi gagal tanpa membuat profil/account. Request ulang dengan payload valid untuk UID yang sudah terdaftar menghasilkan `409` tanpa mengubah profil atau foto; akun/profil terhapus atau nonaktif tidak dibuat ulang.
 
 Jika email dari token sudah dipakai profil lain, API mengembalikan `409`. Pengguna harus menghubungi admin gereja untuk menghubungkan UID yang benar; API tidak menghubungkan profil hanya berdasarkan kecocokan email.
 

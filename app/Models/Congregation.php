@@ -32,6 +32,9 @@ final class Congregation extends Model
             'marital_status' => CongregationMaritalStatus::class,
             'baptism_status' => BaptismStatus::class,
             'membership_status' => CongregationMembershipStatus::class,
+            'holy_spirit_baptism' => 'boolean',
+            'children_names' => 'array',
+            'siblings_names' => 'array',
             'date_of_birth' => 'date', 'baptism_date' => 'date', 'joined_at' => 'date', 'is_active' => 'boolean',
         ];
     }

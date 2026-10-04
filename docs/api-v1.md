@@ -16,6 +16,8 @@ X-App-Version: 1.0.0
 X-Request-Id: optional-client-generated-id
 ```
 
+Untuk register dengan foto, gunakan `multipart/form-data` dengan boundary yang dibuat HTTP client, bukan `application/json`.
+
 ## Format response
 
 Sukses:

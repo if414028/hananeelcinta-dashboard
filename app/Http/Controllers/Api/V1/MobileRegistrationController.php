@@ -13,14 +13,16 @@ use App\Http\Requests\Api\V1\RegisterCongregationRequest;
 use App\Http\Resources\Api\V1\MobileAccountResource;
 use App\Models\Congregation;
 use App\Models\MobileAccount;
+use App\Services\ImageUploadService;
 use App\Support\ApiResponse;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 final class MobileRegistrationController extends Controller
 {
-    public function __invoke(RegisterCongregationRequest $request, GenerateMemberNumber $generator): JsonResponse
+    public function __invoke(RegisterCongregationRequest $request, GenerateMemberNumber $generator, ImageUploadService $uploads): JsonResponse
     {
         /** @var VerifiedFirebaseToken $verified */
         $verified = $request->attributes->get('firebase_token');
@@ -34,9 +36,17 @@ final class MobileRegistrationController extends Controller
             return ApiResponse::error('Email is already associated with congregation data. Contact the church administrator to link your account.', 409);
         }
 
+        $photoPath = null;
         try {
-            $account = DB::transaction(function () use ($request, $verified, $generator): MobileAccount {
-                $congregation = Congregation::query()->create(array_merge($request->validated(), [
+            // Store once, outside the retried database transaction, and clean up on rollback.
+            if ($request->hasFile('profile_photo')) {
+                $photoPath = $uploads->store($request->file('profile_photo'), 'congregations');
+            }
+            $profile = $request->safe()->except('profile_photo');
+
+            $account = DB::transaction(function () use ($request, $verified, $generator, $profile, $photoPath): MobileAccount {
+                $congregation = Congregation::query()->create(array_merge($profile, [
+                    'profile_photo' => $photoPath,
                     'legacy_firebase_uid' => $verified->uid,
                     'email' => $verified->email,
                     'member_number' => $generator->handle(),
@@ -62,7 +72,12 @@ final class MobileRegistrationController extends Controller
 
                 return $account->setRelation('congregation', $congregation);
             }, 3);
-        } catch (UniqueConstraintViolationException) {
+        } catch (Throwable $exception) {
+            $uploads->delete($photoPath);
+            if (! $exception instanceof UniqueConstraintViolationException) {
+                throw $exception;
+            }
+
             // Database uniqueness also protects simultaneous submissions; the transaction rolls back both records.
             return ApiResponse::error('Account or congregation data is already registered. Retrieve your profile or contact the church administrator.', 409);
         }
