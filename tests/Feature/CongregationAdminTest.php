@@ -49,7 +49,7 @@ final class CongregationAdminTest extends TestCase
 
         $this->post(route('admin.logout'));
         $this->post(route('admin.login.store'), ['email' => $admin->email, 'password' => 'cms-password-123'])
-            ->assertRedirect(route('admin.dashboard'));
+            ->assertRedirect(route('admin.congregations.index'));
         $this->assertAuthenticatedAs($admin);
     }
 

@@ -33,7 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->redirectGuestsTo(fn () => route('admin.login'));
-        $middleware->redirectUsersTo(fn () => route('admin.dashboard'));
+        $middleware->redirectUsersTo(fn (Request $request) => route($request->user()->adminHomeRoute()));
 
         $middleware->alias([
             'active' => EnsureUserIsActive::class,

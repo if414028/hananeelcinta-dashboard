@@ -159,7 +159,7 @@ final class PhaseThreeCmsTest extends TestCase
     public function test_settings_can_be_updated(): void
     {
         $admin = User::factory()->create();
-        $admin->givePermissionTo('settings.update');
+        $admin->assignRole('Super Admin');
         $settings = app(WebsiteSettings::class);
         $this->assertSame('JKI Hananeel Cinta', $settings->get('church_name'));
 

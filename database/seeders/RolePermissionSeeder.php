@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Support\AdminAccess;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -33,7 +34,7 @@ final class RolePermissionSeeder extends Seeder
         }
 
         Role::findOrCreate('Super Admin', 'web')->syncPermissions(Permission::all());
-        Role::findOrCreate('Admin', 'web')->givePermissionTo(['dashboard.view', 'prayer_requests.view', 'prayer_requests.view_confidential', 'prayer_requests.update']);
-        Role::findOrCreate('Pastor', 'web')->givePermissionTo(['dashboard.view', 'prayer_requests.view', 'prayer_requests.view_confidential', 'prayer_requests.update']);
+        Role::findOrCreate('Admin', 'web')->syncPermissions(AdminAccess::ADMIN_PERMISSIONS);
+        Role::findOrCreate('Pastor', 'web')->givePermissionTo(['prayer_requests.view', 'prayer_requests.view_confidential', 'prayer_requests.update']);
     }
 }

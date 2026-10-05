@@ -29,11 +29,15 @@ final class AdminUserPasswordTest extends TestCase
             $actor = $this->user($role);
             $actor->givePermissionTo('admins.update');
 
-            $this->actingAs($actor)->get(route('admin.admin-users.edit', $target))
-                ->assertOk()
-                ->assertDontSee('name="password"', false)
-                ->assertDontSee('name="password_confirmation"', false)
-                ->assertSee('Password Super Admin hanya dapat diubah oleh pemilik akun.');
+            if ($role === 'Admin') {
+                $this->actingAs($actor)->get(route('admin.admin-users.edit', $target))->assertForbidden();
+            } else {
+                $this->actingAs($actor)->get(route('admin.admin-users.edit', $target))
+                    ->assertOk()
+                    ->assertDontSee('name="password"', false)
+                    ->assertDontSee('name="password_confirmation"', false)
+                    ->assertSee('Password Super Admin hanya dapat diubah oleh pemilik akun.');
+            }
 
             foreach (['Super Admin', 'Admin'] as $requestedRole) {
                 $this->actingAs($actor)->put(route('admin.admin-users.update', $target),

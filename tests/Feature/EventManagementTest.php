@@ -92,6 +92,107 @@ final class EventManagementTest extends TestCase
             ->assertOk()->assertHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
     }
 
+    public function test_manual_confirmation_lists_searches_and_paginates_only_this_events_participants(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('Admin');
+        $event = $this->event();
+        $hana = $event->registrations()->create(['ticket_code' => 'manual-hana', 'attendee_name' => 'Hana Cinta', 'answers' => ['name' => 'Hana Cinta', 'birth_date' => '1995-03-12']]);
+        $event->registrations()->create(['ticket_code' => 'manual-budi', 'attendee_name' => 'Budi', 'answers' => ['name' => 'Budi']]);
+        $otherEvent = $this->event(['slug' => 'other-event']);
+        $otherEvent->registrations()->create(['ticket_code' => 'other-ticket', 'attendee_name' => 'Hana Lain', 'answers' => ['name' => 'Hana Lain']]);
+
+        $this->actingAs($admin)->get(route('admin.events.show', $event))->assertOk()->assertSee('Konfirmasi Manual');
+        $this->get(route('admin.events.manual', $event))->assertOk()->assertSee('Hana Cinta')->assertSee('Budi')->assertDontSee('Hana Lain')->assertSee('manual-dialog-title')->assertSee('Konfirmasi kehadiran');
+        $this->assertNull($hana->fresh()->checked_in_at);
+        $this->get(route('admin.events.manual', [$event, 'search' => 'Hana']))->assertOk()->assertSee('Hana Cinta')->assertDontSee('manual-budi')->assertDontSee('Hana Lain')->assertSee('1995-03-12');
+        $this->get(route('admin.events.manual', [$event, 'search' => 'TidakAda']))->assertOk()->assertSee('Peserta tidak ditemukan');
+
+        foreach (range(1, 26) as $number) {
+            $event->registrations()->create(['ticket_code' => 'pagination-'.$number, 'attendee_name' => sprintf('Peserta %02d', $number), 'answers' => []]);
+        }
+        $this->get(route('admin.events.manual', [$event, 'search' => 'Peserta', 'page' => 2]))
+            ->assertOk()->assertSee('Peserta 26')->assertDontSee('Peserta 01');
+    }
+
+    public function test_manual_confirmation_records_attendance_once_and_returns_to_search_results(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('Admin');
+        $event = $this->event();
+        $registration = $event->registrations()->create(['ticket_code' => 'manual-attendance', 'attendee_name' => 'Hana Cinta', 'answers' => ['name' => 'Hana Cinta']]);
+        $returnUrl = route('admin.events.manual', [$event, 'search' => 'Hana']);
+
+        $this->actingAs($admin)->from($returnUrl)->post(route('admin.events.manual-check-in', [$event, $registration]))
+            ->assertRedirect($returnUrl)->assertSessionHas('success', 'Check-in berhasil dicatat.');
+        $checkedInAt = $registration->fresh()->checked_in_at;
+        $this->assertNotNull($checkedInAt);
+        $this->assertSame($admin->id, $registration->fresh()->checked_in_by);
+        $this->get($returnUrl)->assertOk()->assertSee('Hadir');
+
+        $otherAdmin = User::factory()->create();
+        $otherAdmin->assignRole('Super Admin');
+        $this->travel(5)->minutes();
+        $this->actingAs($otherAdmin)->from($returnUrl)->post(route('admin.events.manual-check-in', [$event, $registration]))
+            ->assertRedirect($returnUrl)->assertSessionHas('success', 'Peserta ini sudah check-in sebelumnya.');
+        $this->assertTrue($registration->fresh()->checked_in_at->equalTo($checkedInAt));
+        $this->assertSame($admin->id, $registration->fresh()->checked_in_by);
+    }
+
+    public function test_manual_confirmation_requires_check_in_permission_and_matching_event(): void
+    {
+        $event = $this->event();
+        $registration = $event->registrations()->create(['ticket_code' => 'protected-attendance', 'attendee_name' => 'Hana', 'answers' => []]);
+        $viewer = User::factory()->create();
+        $viewer->givePermissionTo(['events.view', 'events.registrations']);
+        $this->actingAs($viewer)->get(route('admin.events.manual', $event))->assertForbidden();
+        $this->post(route('admin.events.manual-check-in', [$event, $registration]))->assertForbidden();
+        $this->get(route('admin.events.show', $event))->assertOk()->assertDontSee('Konfirmasi Manual');
+
+        $admin = User::factory()->create();
+        $admin->assignRole('Admin');
+        $otherEvent = $this->event(['slug' => 'wrong-event']);
+        $this->actingAs($admin)->post(route('admin.events.manual-check-in', [$otherEvent, $registration]))->assertNotFound();
+        $this->assertNull($registration->fresh()->checked_in_at);
+    }
+
+    public function test_registration_ticket_search_does_not_leak_participants_from_other_events(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('Admin');
+        $event = $this->event();
+        $otherEvent = $this->event(['slug' => 'another-event']);
+        $otherEvent->registrations()->create(['ticket_code' => 'private-other-ticket', 'attendee_name' => 'Peserta event lain', 'answers' => []]);
+
+        $this->actingAs($admin)->get(route('admin.events.registrations', [$event, 'search' => 'private-other-ticket']))
+            ->assertOk()->assertDontSee('Peserta event lain');
+    }
+
+    public function test_manual_attendance_tabs_filter_with_name_search_and_update_after_confirmation(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('Admin');
+        $event = $this->event();
+        $event->registrations()->create(['ticket_code' => 'tab-present', 'attendee_name' => 'Hana Hadir', 'answers' => [], 'checked_in_at' => now(), 'checked_in_by' => $admin->id]);
+        $pending = $event->registrations()->create(['ticket_code' => 'tab-pending', 'attendee_name' => 'Hana Menunggu', 'answers' => []]);
+        $event->registrations()->create(['ticket_code' => 'tab-budi', 'attendee_name' => 'Budi Menunggu', 'answers' => []]);
+        $otherEvent = $this->event(['slug' => 'tabs-other-event']);
+        $otherEvent->registrations()->create(['ticket_code' => 'tab-other', 'attendee_name' => 'Hana Event Lain', 'answers' => [], 'checked_in_at' => now()]);
+
+        $this->actingAs($admin)->get(route('admin.events.manual', [$event, 'status' => 'present', 'search' => 'Hana']))
+            ->assertOk()->assertSee('Hana Hadir')->assertDontSee('Hana Menunggu')->assertDontSee('Hana Event Lain')
+            ->assertViewHas('statusCounts', ['all' => 3, 'present' => 1, 'pending' => 2])
+            ->assertSee('name="status" value="present"', false);
+        $returnUrl = route('admin.events.manual', [$event, 'status' => 'pending', 'search' => 'Hana']);
+        $this->get($returnUrl)->assertOk()->assertSee('Hana Menunggu')->assertDontSee('Hana Hadir')->assertDontSee('Budi Menunggu');
+        $this->from($returnUrl)->post(route('admin.events.manual-check-in', [$event, $pending]))->assertRedirect($returnUrl);
+        $this->get($returnUrl)->assertOk()->assertDontSee('Hana Menunggu')->assertSee('Peserta tidak ditemukan')
+            ->assertViewHas('statusCounts', ['all' => 3, 'present' => 2, 'pending' => 1]);
+        $this->get(route('admin.events.manual', [$event, 'status' => 'present']))->assertOk()->assertSee('Hana Menunggu')->assertSee('Hana Hadir');
+        $this->get(route('admin.events.manual', [$event, 'status' => 'all']))->assertOk()->assertSee('Budi Menunggu')->assertSee('Hana Menunggu')->assertSee('Hana Hadir');
+        $this->get(route('admin.events.manual', [$event, 'status' => 'invalid']))->assertSessionHasErrors('status');
+    }
+
     private function event(array $overrides = []): Event
     {
         return Event::query()->create(array_merge([

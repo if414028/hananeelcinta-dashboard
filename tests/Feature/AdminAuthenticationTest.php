@@ -21,7 +21,7 @@ final class AdminAuthenticationTest extends TestCase
         $this->seed(RolePermissionSeeder::class);
     }
 
-    public function test_active_admin_can_login_and_reach_dashboard(): void
+    public function test_active_admin_can_login_and_reach_congregations(): void
     {
         $user = User::factory()->create(['password' => 'secret-password']);
         $user->assignRole('Admin');
@@ -29,11 +29,22 @@ final class AdminAuthenticationTest extends TestCase
         $this->post(route('admin.login.store'), [
             'email' => $user->email,
             'password' => 'secret-password',
-        ])->assertRedirect(route('admin.dashboard'));
+        ])->assertRedirect(route('admin.congregations.index'));
 
         $this->assertAuthenticatedAs($user);
-        $this->get(route('admin.dashboard'))->assertOk();
+        $this->get(route('admin.congregations.index'))->assertOk();
+        $this->get(route('admin.dashboard'))->assertForbidden();
         $this->assertNotNull($user->fresh()->last_login_at);
+    }
+
+    public function test_admin_login_skips_a_super_admin_only_intended_page(): void
+    {
+        $user = User::factory()->create(['password' => 'secret-password']);
+        $user->assignRole('Admin');
+
+        $this->get(route('admin.dashboard'))->assertRedirect(route('admin.login'));
+        $this->post(route('admin.login.store'), ['email' => $user->email, 'password' => 'secret-password'])
+            ->assertRedirect(route('admin.congregations.index'));
     }
 
     public function test_inactive_admin_cannot_login(): void

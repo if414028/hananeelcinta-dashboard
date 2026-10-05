@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\PastorMessageController;
 use App\Http\Controllers\Admin\PrayerRequestController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\WebsiteSettingController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function (): void {
@@ -29,12 +30,12 @@ Route::middleware('guest')->group(function (): void {
 });
 
 Route::middleware(['auth', 'active'])->group(function (): void {
-    Route::redirect('/', '/admin/dashboard');
+    Route::get('/', fn (Request $request) => redirect()->route($request->user()->adminHomeRoute()));
     Route::get('/dashboard', DashboardController::class)
-        ->middleware('permission:dashboard.view')->name('dashboard');
+        ->middleware(['role:Super Admin', 'permission:dashboard.view'])->name('dashboard');
 
     Route::resource('admin-users', AdminUserController::class)->parameters(['admin-users' => 'adminUser'])
-        ->middlewareFor(['index', 'show'], 'permission:admins.view')->middlewareFor(['create', 'store'], 'permission:admins.create')->middlewareFor(['edit', 'update'], 'permission:admins.update')->middlewareFor('destroy', 'permission:admins.delete');
+        ->middleware('role:Super Admin')->middlewareFor(['index', 'show'], 'permission:admins.view')->middlewareFor(['create', 'store'], 'permission:admins.create')->middlewareFor(['edit', 'update'], 'permission:admins.update')->middlewareFor('destroy', 'permission:admins.delete');
 
     Route::get('congregations/export', [CongregationController::class, 'export'])->middleware('permission:congregations.export')->name('congregations.export');
     Route::resource('congregations', CongregationController::class)
@@ -53,6 +54,8 @@ Route::middleware(['auth', 'active'])->group(function (): void {
         ->middlewareFor(['index', 'show'], 'permission:family_altars.view')->middlewareFor(['create', 'store'], 'permission:family_altars.create')->middlewareFor(['edit', 'update'], 'permission:family_altars.update')->middlewareFor('destroy', 'permission:family_altars.delete');
 
     Route::get('events/{event}/registrations', [EventRegistrationController::class, 'index'])->middleware('permission:events.registrations')->name('events.registrations');
+    Route::get('events/{event}/manual-check-in', [EventRegistrationController::class, 'manual'])->middleware('permission:events.check_in')->name('events.manual');
+    Route::post('events/{event}/registrations/{registration}/check-in', [EventRegistrationController::class, 'manualCheckIn'])->middleware('permission:events.check_in')->name('events.manual-check-in');
     Route::get('events/{event}/scanner', [EventRegistrationController::class, 'scanner'])->middleware('permission:events.check_in')->name('events.scanner');
     Route::get('event-registrations/{registration}/verify', [EventRegistrationController::class, 'verify'])->middleware('permission:events.check_in')->name('event-registrations.verify');
     Route::post('event-registrations/{registration}/check-in', [EventRegistrationController::class, 'checkIn'])->middleware('permission:events.check_in')->name('event-registrations.check-in');
@@ -63,9 +66,9 @@ Route::middleware(['auth', 'active'])->group(function (): void {
     Route::resource('pastor-messages', PastorMessageController::class)->parameters(['pastor-messages' => 'pastorMessage'])
         ->middlewareFor(['index', 'show'], 'permission:pastor_messages.view')->middlewareFor(['create', 'store'], 'permission:pastor_messages.create')->middlewareFor(['edit', 'update'], 'permission:pastor_messages.update')->middlewareFor('destroy', 'permission:pastor_messages.delete');
 
-    Route::get('settings', [WebsiteSettingController::class, 'index'])->middleware('permission:settings.view')->name('settings.index');
-    Route::put('settings', [WebsiteSettingController::class, 'update'])->middleware('permission:settings.update')->name('settings.update');
-    Route::get('audit-logs', [AuditLogController::class, 'index'])->middleware('permission:audit_logs.view')->name('audit-logs.index');
+    Route::get('settings', [WebsiteSettingController::class, 'index'])->middleware(['role:Super Admin', 'permission:settings.view'])->name('settings.index');
+    Route::put('settings', [WebsiteSettingController::class, 'update'])->middleware(['role:Super Admin', 'permission:settings.update'])->name('settings.update');
+    Route::get('audit-logs', [AuditLogController::class, 'index'])->middleware(['role:Super Admin', 'permission:audit_logs.view'])->name('audit-logs.index');
     Route::get('roles', [RoleController::class, 'index'])->middleware('role:Super Admin')->name('roles.index');
     Route::get('roles/{role}/edit', [RoleController::class, 'edit'])->middleware('role:Super Admin')->name('roles.edit');
     Route::put('roles/{role}', [RoleController::class, 'update'])->middleware('role:Super Admin')->name('roles.update');

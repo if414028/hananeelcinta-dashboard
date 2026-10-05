@@ -37,6 +37,28 @@ class User extends Authenticatable
         ];
     }
 
+    public function adminHomeRoute(): string
+    {
+        if ($this->hasRole('Super Admin')) {
+            return 'admin.dashboard';
+        }
+
+        foreach ([
+            'congregations' => 'congregations',
+            'prayer_requests' => 'prayer-requests',
+            'family_altars' => 'family-altars',
+            'events' => 'events',
+            'announcements' => 'announcements',
+            'pastor_messages' => 'pastor-messages',
+        ] as $permission => $resource) {
+            if ($this->can($permission.'.view')) {
+                return 'admin.'.$resource.'.index';
+            }
+        }
+
+        return 'admin.congregations.index';
+    }
+
     public function congregation(): BelongsTo
     {
         return $this->belongsTo(Congregation::class);

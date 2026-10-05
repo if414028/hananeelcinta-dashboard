@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\AdminAccess;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -21,13 +22,17 @@ final class RoleController extends Controller
 
     public function edit(Role $role): View
     {
-        return view('admin.roles.edit', ['role' => $role, 'permissions' => Permission::query()->orderBy('name')->get()->groupBy(fn (Permission $permission): string => str($permission->name)->before('.')->toString())]);
+        return view('admin.roles.edit', ['role' => $role, 'permissions' => Permission::query()->orderBy('name')->get()->reject(fn (Permission $permission): bool => $role->name !== 'Super Admin' && AdminAccess::isSuperAdminPermission($permission->name))->groupBy(fn (Permission $permission): string => str($permission->name)->before('.')->toString())]);
     }
 
     public function update(Request $request, Role $role): RedirectResponse
     {
         abort_if($role->name === 'Super Admin', 422, 'Permission Super Admin tidak dapat dibatasi.');
-        $validated = $request->validate(['permissions' => ['nullable', 'array'], 'permissions.*' => ['exists:permissions,name']]);
+        $validated = $request->validate(['permissions' => ['nullable', 'array'], 'permissions.*' => ['exists:permissions,name', function (string $attribute, mixed $value, \Closure $fail): void {
+            if (AdminAccess::isSuperAdminPermission($value)) {
+                $fail('Permission ini hanya tersedia untuk Super Admin.');
+            }
+        }]]);
         $role->syncPermissions($validated['permissions'] ?? []);
         app(PermissionRegistrar::class)->forgetCachedPermissions();
         activity('roles')->causedBy($request->user())->performedOn($role)->event('updated')->log('Permission role diperbarui');
