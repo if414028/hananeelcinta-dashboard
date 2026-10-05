@@ -55,6 +55,7 @@ final class AdminUserController extends Controller
     public function update(UpdateAdminUserRequest $request, User $adminUser): RedirectResponse
     {
         abort_if($adminUser->hasRole('Super Admin') && ! $request->user()->hasRole('Super Admin'), 403);
+        abort_if($adminUser->hasRole('Super Admin') && ! $request->user()->is($adminUser) && $request->filled('password'), 403, 'Password Super Admin hanya dapat diubah oleh pemilik akun.');
         abort_if($request->user()->is($adminUser) && ! $request->boolean('is_active'), 422, 'Admin tidak dapat menonaktifkan akun sendiri.');
         abort_if($adminUser->hasRole('Super Admin') && $request->string('role')->toString() !== 'Super Admin' && User::role('Super Admin')->count() <= 1, 422, 'Super Admin terakhir tidak dapat diturunkan rolenya.');
         DB::transaction(function () use ($request, $adminUser): void {
@@ -101,6 +102,7 @@ final class AdminUserController extends Controller
             'item' => $item,
             'congregations' => $congregations,
             'roles' => Role::query()->pluck('name', 'name'),
+            'canChangePassword' => ! $item->exists || ! $item->hasRole('Super Admin') || auth()->user()->is($item),
         ]);
     }
 }

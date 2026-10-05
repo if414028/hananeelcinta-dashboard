@@ -26,9 +26,13 @@
                 @foreach($roles as $value => $label)<option value="{{ $value }}" @selected(old('role', $item->getRoleNames()->first()) === $value)>{{ $label }}</option>@endforeach
             </x-select>
             <label class="flex min-h-12 items-center gap-3 self-end"><input type="hidden" name="is_active" value="0"><input type="checkbox" name="is_active" value="1" class="h-5 w-5" @checked((bool) old('is_active', $item->exists ? $item->is_active : true))> Admin aktif</label>
-            <x-input name="password" label="Password CMS" type="password" :required="!$item->exists" autocomplete="new-password" />
-            <x-input name="password_confirmation" label="Konfirmasi password CMS" type="password" :required="!$item->exists" autocomplete="new-password" />
-            <p class="text-sm text-slate md:col-span-2">Password ini untuk login CMS. Login mobile tetap menggunakan akun Firebase.{{ $item->exists ? ' Kosongkan password jika tidak ingin mengubahnya.' : '' }}</p>
+            @if($canChangePassword)
+                <x-input name="password" label="Password CMS" type="password" :required="!$item->exists" autocomplete="new-password" />
+                <x-input name="password_confirmation" label="Konfirmasi password CMS" type="password" :required="!$item->exists" autocomplete="new-password" />
+                <p class="text-sm text-slate md:col-span-2">Password ini untuk login CMS. Login mobile tetap menggunakan akun Firebase.{{ $item->exists ? ' Kosongkan password jika tidak ingin mengubahnya.' : '' }}</p>
+            @else
+                <p class="text-sm text-slate md:col-span-2">Password Super Admin hanya dapat diubah oleh pemilik akun.</p>
+            @endif
             <div class="admin-action-group border-t border-ink/10 pt-6 md:col-span-2"><x-button type="submit">Simpan data</x-button><a href="{{ route('admin.admin-users.index') }}" class="button-secondary">Batal</a></div>
         </form>
     </x-card>
