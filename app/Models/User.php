@@ -47,6 +47,7 @@ class User extends Authenticatable
             'congregations' => 'congregations',
             'prayer_requests' => 'prayer-requests',
             'family_altars' => 'family-altars',
+            'discipleship' => 'discipleship',
             'events' => 'events',
             'announcements' => 'announcements',
             'pastor_messages' => 'pastor-messages',

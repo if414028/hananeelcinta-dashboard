@@ -12,6 +12,7 @@ use App\Models\Concerns\HasAuditUsers;
 use Database\Factories\CongregationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
@@ -47,6 +48,18 @@ final class Congregation extends Model
     public function mobileAccount(): HasOne
     {
         return $this->hasOne(MobileAccount::class);
+    }
+
+    public function discipleshipClasses(): BelongsToMany
+    {
+        return $this->belongsToMany(DiscipleshipClass::class, 'discipleship_enrollments')
+            ->withPivot('completed_at')->withTimestamps();
+    }
+
+    public function completedDiscipleshipClasses(): BelongsToMany
+    {
+        return $this->discipleshipClasses()->wherePivotNotNull('completed_at')
+            ->whereNotNull('discipleship_classes.completed_at')->orderByDesc('discipleship_classes.completed_at');
     }
 
     public function adminUser(): HasOne

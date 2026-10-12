@@ -21,17 +21,17 @@ final class AdminMenuAccessTest extends TestCase
         $this->seed([RolePermissionSeeder::class, WebsiteSettingSeeder::class]);
     }
 
-    public function test_admin_can_open_only_the_six_module_menus(): void
+    public function test_admin_can_open_only_the_allowed_module_menus(): void
     {
         $admin = User::factory()->create();
         $admin->assignRole('Admin');
 
-        foreach (['congregations', 'prayer-requests', 'family-altars', 'events', 'announcements', 'pastor-messages'] as $module) {
+        foreach (['congregations', 'prayer-requests', 'family-altars', 'events', 'discipleship', 'announcements', 'pastor-messages'] as $module) {
             $this->actingAs($admin)->get(route('admin.'.$module.'.index'))->assertOk();
         }
 
         $response = $this->get(route('admin.congregations.index'));
-        foreach (['Jemaat', 'Prayer Request', 'Mezbah Keluarga', 'Event', 'Pengumuman', 'Pastor Message'] as $label) {
+        foreach (['Jemaat', 'Prayer Request', 'Mezbah Keluarga', 'Event', 'Pemuridan', 'Pengumuman', 'Pastor Message'] as $label) {
             $response->assertSee($label);
         }
         foreach (['dashboard', 'admin-users.index', 'roles.index', 'settings.index', 'audit-logs.index'] as $route) {
@@ -71,7 +71,7 @@ final class AdminMenuAccessTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('Admin');
         $this->actingAs($admin)->post(route('admin.family-altars.store'), [])->assertSessionHasErrors();
-        foreach (['congregations', 'family-altars', 'events', 'announcements', 'pastor-messages'] as $module) {
+        foreach (['congregations', 'family-altars', 'events', 'discipleship', 'announcements', 'pastor-messages'] as $module) {
             $this->get(route('admin.'.$module.'.create'))->assertOk();
         }
     }

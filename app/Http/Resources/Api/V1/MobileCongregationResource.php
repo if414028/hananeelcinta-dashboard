@@ -48,6 +48,13 @@ final class MobileCongregationResource extends JsonResource
             'joined_at' => $this->joined_at?->format('Y-m-d'),
             'profile_photo_url' => $this->profile_photo || $this->legacy_profile_photo_url ? $this->profilePhotoUrl() : null,
             'is_active' => $this->is_active,
+            'discipleship_badges' => $this->resource->completedDiscipleshipClasses->map(fn ($class): array => [
+                'class_id' => $class->id,
+                'class_name' => $class->name,
+                'teacher_name' => $class->teacher_name,
+                'badge_url' => $class->badgeUrl(),
+                'completed_at' => $class->completed_at->toAtomString(),
+            ])->values()->all(),
         ];
     }
 }

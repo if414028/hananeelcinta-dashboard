@@ -65,6 +65,7 @@ final class CongregationController extends Controller
             'title' => 'Detail Jemaat',
             'routeBase' => 'admin.congregations',
             'item' => $congregation,
+            'completedClasses' => $congregation->completedDiscipleshipClasses()->get(),
             'profile' => [
                 'name' => $congregation->full_name,
                 'meta' => $congregation->member_number.' · '.$congregation->membership_status->label(),

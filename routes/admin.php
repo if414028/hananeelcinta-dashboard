@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\Auth\NewPasswordController;
 use App\Http\Controllers\Admin\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Admin\CongregationController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DiscipleshipClassController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\EventRegistrationController;
 use App\Http\Controllers\Admin\FamilyAltarController;
@@ -52,6 +53,11 @@ Route::middleware(['auth', 'active'])->group(function (): void {
 
     Route::resource('family-altars', FamilyAltarController::class)->parameters(['family-altars' => 'familyAltar'])
         ->middlewareFor(['index', 'show'], 'permission:family_altars.view')->middlewareFor(['create', 'store'], 'permission:family_altars.create')->middlewareFor(['edit', 'update'], 'permission:family_altars.update')->middlewareFor('destroy', 'permission:family_altars.delete');
+
+    Route::get('discipleship/members', [DiscipleshipClassController::class, 'members'])->middleware('permission:discipleship.create|discipleship.update')->name('discipleship.members');
+    Route::post('discipleship/{discipleshipClass}/complete', [DiscipleshipClassController::class, 'complete'])->middleware('permission:discipleship.complete')->name('discipleship.complete');
+    Route::resource('discipleship', DiscipleshipClassController::class)->parameters(['discipleship' => 'discipleshipClass'])->except('destroy')
+        ->middlewareFor(['index', 'show'], 'permission:discipleship.view')->middlewareFor(['create', 'store'], 'permission:discipleship.create')->middlewareFor(['edit', 'update'], 'permission:discipleship.update');
 
     Route::get('events/{event}/registrations', [EventRegistrationController::class, 'index'])->middleware('permission:events.registrations')->name('events.registrations');
     Route::get('events/{event}/manual-check-in', [EventRegistrationController::class, 'manual'])->middleware('permission:events.check_in')->name('events.manual');

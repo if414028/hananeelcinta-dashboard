@@ -1,4 +1,5 @@
 import './chart-tooltips';
+import './discipleship-participants';
 import Alpine from 'alpinejs';
 
 window.Alpine = Alpine;

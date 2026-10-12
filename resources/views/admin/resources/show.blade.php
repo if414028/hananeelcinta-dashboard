@@ -19,6 +19,24 @@
             </div>
         </x-card>
     @endisset
+    @isset($completedClasses)
+        <x-card title="Badge Pemuridan" class="mb-6">
+            <p class="mb-5 text-sm text-slate">Kelas pemuridan yang telah diselesaikan oleh jemaat ini.</p>
+            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                @forelse($completedClasses as $completedClass)
+                    <div class="flex items-center gap-4 rounded-2xl border border-ink/10 p-4">
+                        <img src="{{ $completedClass->badgeUrl() }}" alt="Badge {{ $completedClass->name }}" class="h-16 w-16 shrink-0 object-contain" loading="lazy">
+                        <div class="min-w-0">
+                            @can('discipleship.view')<a href="{{ route('admin.discipleship.show', $completedClass) }}" class="break-words font-semibold hover:text-primary">{{ $completedClass->name }}</a>@else<p class="break-words font-semibold">{{ $completedClass->name }}</p>@endcan
+                            <p class="mt-1 text-xs text-slate">Selesai {{ $completedClass->completed_at->translatedFormat('d M Y') }}</p>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-sm text-slate sm:col-span-2 xl:col-span-3">Belum ada badge kelulusan pemuridan.</p>
+                @endforelse
+            </div>
+        </x-card>
+    @endisset
     @isset($detailSections)
         <div class="grid gap-6 xl:grid-cols-2">
             @foreach($detailSections as $sectionTitle => $sectionDetails)
