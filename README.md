@@ -82,6 +82,7 @@ Import aman dijalankan ulang karena memakai Firebase key/UID sebagai identitas l
 - [REST API v1](docs/api-v1.md)
 - [Postman collection](docs/postman/JKI-Hananeel-Cinta-API.postman_collection.json)
 - [Firebase JSON migration](docs/firebase-migration.md)
+- [Impor tambahan Jemaat Firebase](docs/import-new-firebase-congregations.md)
 - [Firebase Auth Bridge](docs/firebase-auth-bridge.md)
 - [Deployment Hostinger VPS](docs/deployment-hostinger-vps.md)
 - [Production checklist](docs/production-checklist.md)
