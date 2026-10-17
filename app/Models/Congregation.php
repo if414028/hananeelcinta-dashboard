@@ -8,6 +8,7 @@ use App\Enums\BaptismStatus;
 use App\Enums\CongregationGender;
 use App\Enums\CongregationMaritalStatus;
 use App\Enums\CongregationMembershipStatus;
+use App\Enums\MinistryUnit;
 use App\Models\Concerns\HasAuditUsers;
 use Database\Factories\CongregationFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -33,6 +34,8 @@ final class Congregation extends Model
             'marital_status' => CongregationMaritalStatus::class,
             'baptism_status' => BaptismStatus::class,
             'membership_status' => CongregationMembershipStatus::class,
+            'is_serving' => 'boolean',
+            'ministry_unit' => MinistryUnit::class,
             'holy_spirit_baptism' => 'boolean',
             'children_names' => 'array',
             'siblings_names' => 'array',
@@ -42,7 +45,7 @@ final class Congregation extends Model
 
     public function getActivitylogOptions(): LogOptions
     {
-        return LogOptions::defaults()->logOnly(['member_number', 'full_name', 'membership_status', 'is_active'])->logOnlyDirty();
+        return LogOptions::defaults()->logOnly(['member_number', 'full_name', 'membership_status', 'is_active', 'is_serving', 'ministry_unit'])->logOnlyDirty();
     }
 
     public function mobileAccount(): HasOne

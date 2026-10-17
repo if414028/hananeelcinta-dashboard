@@ -12,7 +12,7 @@
         <form method="get" class="grid gap-4 md:grid-cols-4">
             <x-input name="search" label="Pencarian" :value="request('search')" placeholder="Cari data…" />
             @foreach($filters ?? [] as $filter)<x-select :name="$filter['name']" :label="$filter['label']"><option value="">Semua</option>@foreach($filter['options'] as $value=>$label)<option value="{{ $value }}" @selected(request($filter['name'])===$value)>{{ $label }}</option>@endforeach</x-select>@endforeach
-            <div class="admin-filter-actions"><x-button type="submit"><x-icon name="search" :size="18"/>Terapkan</x-button><a href="{{ route($routeBase.'.index') }}" class="text-link justify-center !px-3">Reset</a></div>
+            <div @class(['admin-filter-actions', 'md:col-span-4 md:justify-end' => $isCongregationList])><x-button type="submit"><x-icon name="search" :size="18"/>Terapkan</x-button><a href="{{ route($routeBase.'.index') }}" class="text-link justify-center !px-3">Reset</a></div>
         </form>
     </x-card>
     @if($isCongregationList)

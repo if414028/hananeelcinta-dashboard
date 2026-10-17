@@ -9,11 +9,13 @@ use App\Enums\BaptismStatus;
 use App\Enums\CongregationGender;
 use App\Enums\CongregationMaritalStatus;
 use App\Enums\CongregationMembershipStatus;
+use App\Enums\MinistryUnit;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCongregationRequest;
 use App\Http\Requests\Admin\UpdateCongregationRequest;
 use App\Models\Congregation;
 use App\Services\ImageUploadService;
+use App\Support\CongregationProfileFields;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,9 +29,9 @@ final class CongregationController extends Controller
     {
         $sort = in_array($request->sort, ['full_name', 'member_number', 'joined_at', 'created_at'], true) ? $request->sort : 'created_at';
         $direction = $request->direction === 'asc' ? 'asc' : 'desc';
-        $items = Congregation::query()->when($request->filled('search'), fn ($q) => $q->where(fn ($q) => $q->where('full_name', 'like', '%'.$request->search.'%')->orWhere('member_number', 'like', '%'.$request->search.'%')->orWhere('phone_number', 'like', '%'.$request->search.'%')->orWhere('whatsapp_number', 'like', '%'.$request->search.'%')->orWhere('email', 'like', '%'.$request->search.'%')))->when($request->filled('gender'), fn ($q) => $q->where('gender', $request->gender))->when($request->filled('membership_status'), fn ($q) => $q->where('membership_status', $request->membership_status))->orderBy($sort, $direction)->paginate(15)->withQueryString();
+        $items = Congregation::query()->when($request->filled('search'), fn ($q) => $q->where(fn ($q) => $q->where('full_name', 'like', '%'.$request->search.'%')->orWhere('member_number', 'like', '%'.$request->search.'%')->orWhere('phone_number', 'like', '%'.$request->search.'%')->orWhere('whatsapp_number', 'like', '%'.$request->search.'%')->orWhere('email', 'like', '%'.$request->search.'%')))->when($request->filled('gender'), fn ($q) => $q->where('gender', $request->gender))->when($request->filled('membership_status'), fn ($q) => $q->where('membership_status', $request->membership_status))->when($request->filled('ministry_unit'), fn ($q) => $q->where('ministry_unit', $request->ministry_unit))->orderBy($sort, $direction)->paginate(15)->withQueryString();
 
-        return view('admin.resources.index', ['title' => 'Data Jemaat', 'routeBase' => 'admin.congregations', 'createPermission' => 'congregations.create', 'exportPermission' => 'congregations.export', 'items' => $items, 'columns' => ['member_number' => 'NIJ', 'name' => 'Nama'], 'rows' => $items->through(fn ($i) => ['id' => $i->id, 'member_number' => $i->member_number, 'name' => $i->full_name, 'profile_photo_url' => $i->profilePhotoUrl()]), 'filters' => [['name' => 'gender', 'label' => 'Gender', 'options' => CongregationGender::options()], ['name' => 'membership_status', 'label' => 'Status', 'options' => CongregationMembershipStatus::options()]]]);
+        return view('admin.resources.index', ['title' => 'Data Jemaat', 'routeBase' => 'admin.congregations', 'createPermission' => 'congregations.create', 'exportPermission' => 'congregations.export', 'items' => $items, 'columns' => ['member_number' => 'NIJ', 'name' => 'Nama'], 'rows' => $items->through(fn ($i) => ['id' => $i->id, 'member_number' => $i->member_number, 'name' => $i->full_name, 'profile_photo_url' => $i->profilePhotoUrl()]), 'filters' => [['name' => 'gender', 'label' => 'Gender', 'options' => CongregationGender::options()], ['name' => 'membership_status', 'label' => 'Status', 'options' => CongregationMembershipStatus::options()], ['name' => 'ministry_unit', 'label' => 'Unit Pelayanan', 'options' => MinistryUnit::options()]]]);
     }
 
     public function create(): View
@@ -54,12 +56,21 @@ final class CongregationController extends Controller
     public function show(Congregation $congregation): View
     {
         $initials = Str::of($congregation->full_name)->explode(' ')->filter()->take(2)->map(fn (string $part): string => Str::upper(Str::substr($part, 0, 1)))->implode('');
-        $congregationDetails = collect($this->firebaseNoteDetails($congregation->notes));
-        $username = $congregationDetails->first(fn (array $detail): bool => Str::lower($detail['label']) === 'username lama')['value'] ?? null;
-        $congregationDetails = $congregationDetails
-            ->reject(fn (array $detail): bool => Str::lower($detail['label']) === 'username lama')
-            ->values()
-            ->all();
+        $congregation = CongregationProfileFields::forDisplay($congregation);
+        $congregationDetails = [];
+        foreach (CongregationProfileFields::LABELS as $column => $label) {
+            if (in_array($column, ['legacy_username', 'legacy_role'], true)) {
+                continue;
+            }
+            $value = $congregation->{$column};
+            if (is_array($value)) {
+                $value = implode(', ', $value);
+            } elseif (is_bool($value)) {
+                $value = $value ? 'Ya' : 'Tidak';
+            }
+            $congregationDetails[] = ['label' => $label, 'value' => $value];
+        }
+        $congregationDetails[] = ['label' => 'Catatan tambahan', 'value' => $congregation->notes, 'wide' => true];
 
         return view('admin.resources.show', [
             'title' => 'Detail Jemaat',
@@ -77,7 +88,7 @@ final class CongregationController extends Controller
                 'Identitas' => [
                     ['label' => 'Nomor Induk Jemaat', 'value' => $congregation->member_number],
                     ['label' => 'Nama lengkap', 'value' => $congregation->full_name],
-                    ['label' => 'Username', 'value' => $username],
+                    ['label' => 'Username', 'value' => $congregation->legacy_username],
                     ['label' => 'Nama panggilan', 'value' => $congregation->nickname],
                     ['label' => 'Gender', 'value' => $congregation->gender->label()],
                     ['label' => 'Tempat lahir', 'value' => $congregation->place_of_birth],
@@ -99,6 +110,8 @@ final class CongregationController extends Controller
                     ['label' => 'Tanggal baptis', 'value' => $congregation->baptism_date?->format('d M Y')],
                     ['label' => 'Status keanggotaan', 'value' => $congregation->membership_status->label()],
                     ['label' => 'Tanggal bergabung', 'value' => $congregation->joined_at?->format('d M Y')],
+                    ['label' => 'Pelayanan', 'value' => $congregation->is_serving ? 'Ya' : 'Tidak'],
+                    ['label' => 'Unit Pelayanan', 'value' => $congregation->ministry_unit?->label()],
                     ['label' => 'Status data', 'value' => $congregation->is_active ? 'Aktif' : 'Tidak aktif'],
                 ],
                 'Data Jemaat' => $congregationDetails,
@@ -142,25 +155,51 @@ final class CongregationController extends Controller
 
     private function form(Congregation $item, string $title): View
     {
-        return view('admin.resources.form', ['title' => $title, 'routeBase' => 'admin.congregations', 'item' => $item, 'fields' => [['name' => 'full_name', 'label' => 'Nama lengkap', 'required' => true], ['name' => 'nickname', 'label' => 'Nama panggilan'], ['name' => 'gender', 'label' => 'Gender', 'type' => 'select', 'options' => CongregationGender::options()], ['name' => 'place_of_birth', 'label' => 'Tempat lahir'], ['name' => 'date_of_birth', 'label' => 'Tanggal lahir', 'type' => 'date'], ['name' => 'marital_status', 'label' => 'Status pernikahan', 'type' => 'select', 'options' => CongregationMaritalStatus::options()], ['name' => 'phone_number', 'label' => 'Telepon'], ['name' => 'whatsapp_number', 'label' => 'WhatsApp'], ['name' => 'email', 'label' => 'Email', 'type' => 'email'], ['name' => 'address', 'label' => 'Alamat', 'type' => 'textarea'], ['name' => 'city', 'label' => 'Kota'], ['name' => 'province', 'label' => 'Provinsi'], ['name' => 'postal_code', 'label' => 'Kode pos'], ['name' => 'occupation', 'label' => 'Pekerjaan'], ['name' => 'baptism_status', 'label' => 'Status baptis', 'type' => 'select', 'options' => BaptismStatus::options()], ['name' => 'baptism_date', 'label' => 'Tanggal baptis', 'type' => 'date'], ['name' => 'membership_status', 'label' => 'Status keanggotaan', 'type' => 'select', 'options' => CongregationMembershipStatus::options()], ['name' => 'joined_at', 'label' => 'Tanggal bergabung', 'type' => 'date'], ['name' => 'notes', 'label' => 'Catatan', 'type' => 'textarea'], ['name' => 'profile_photo', 'label' => 'Foto profil', 'type' => 'file', 'preview_url' => $item->exists ? $item->profilePhotoUrl() : null], ['name' => 'is_active', 'label' => 'Jemaat aktif', 'type' => 'checkbox', 'value' => $item->exists ? $item->is_active : true]]]);
-    }
+        $item = CongregationProfileFields::forDisplay($item);
 
-    /** @return list<array{label:string,value:?string,wide?:bool}> */
-    private function firebaseNoteDetails(?string $notes): array
-    {
-        if (! $notes) {
-            return [['label' => 'Catatan', 'value' => null, 'wide' => true]];
-        }
-
-        return collect(preg_split('/\R/u', $notes) ?: [])
-            ->filter()
-            ->map(function (string $line): array {
-                [$label, $value] = array_pad(explode(':', $line, 2), 2, null);
-
-                return ['label' => trim($label), 'value' => $value === null ? null : trim($value)];
-            })
-            ->reject(fn (array $detail): bool => Str::contains(Str::lower($detail['label']), ['role firebase', 'firebase uid']))
-            ->values()
-            ->all();
+        return view('admin.resources.form', [
+            'title' => $title,
+            'routeBase' => 'admin.congregations',
+            'item' => $item,
+            'fields' => [
+                ['name' => 'full_name', 'label' => 'Nama lengkap', 'required' => true],
+                ['name' => 'nickname', 'label' => 'Nama panggilan'],
+                ['name' => 'legacy_username', 'label' => 'Username lama'],
+                ['name' => 'legacy_role', 'label' => 'Role Firebase (data lama)', 'readonly' => true],
+                ['name' => 'gender', 'label' => 'Gender', 'type' => 'select', 'options' => CongregationGender::options()],
+                ['name' => 'place_of_birth', 'label' => 'Tempat lahir'],
+                ['name' => 'date_of_birth', 'label' => 'Tanggal lahir', 'type' => 'date'],
+                ['name' => 'marital_status', 'label' => 'Status pernikahan', 'type' => 'select', 'options' => CongregationMaritalStatus::options()],
+                ['name' => 'phone_number', 'label' => 'Telepon'],
+                ['name' => 'whatsapp_number', 'label' => 'WhatsApp'],
+                ['name' => 'email', 'label' => 'Email', 'type' => 'email'],
+                ['name' => 'address', 'label' => 'Alamat', 'type' => 'textarea'],
+                ['name' => 'city', 'label' => 'Kota'],
+                ['name' => 'province', 'label' => 'Provinsi'],
+                ['name' => 'postal_code', 'label' => 'Kode pos'],
+                ['name' => 'occupation', 'label' => 'Pekerjaan'],
+                ['name' => 'blood_type', 'label' => 'Golongan darah', 'type' => 'select', 'options' => ['A' => 'A', 'B' => 'B', 'AB' => 'AB', 'O' => 'O']],
+                ['name' => 'last_education', 'label' => 'Pendidikan terakhir'],
+                ['name' => 'baptism_status', 'label' => 'Status baptis', 'type' => 'select', 'options' => BaptismStatus::options()],
+                ['name' => 'baptism_date', 'label' => 'Tanggal baptis', 'type' => 'date'],
+                ['name' => 'baptism_church', 'label' => 'Gereja baptisan air'],
+                ['name' => 'holy_spirit_baptism', 'label' => 'Baptisan Roh Kudus', 'type' => 'select', 'options' => ['1' => 'Ya', '0' => 'Tidak'], 'value' => $item->holy_spirit_baptism === null ? null : (int) $item->holy_spirit_baptism],
+                ['name' => 'church_origin', 'label' => 'Asal gereja'],
+                ['name' => 'reason_to_move_church', 'label' => 'Alasan pindah gereja', 'type' => 'textarea'],
+                ['name' => 'family_status', 'label' => 'Status dalam keluarga'],
+                ['name' => 'father_name', 'label' => 'Nama ayah'],
+                ['name' => 'mother_name', 'label' => 'Nama ibu'],
+                ['name' => 'husband_name', 'label' => 'Nama suami'],
+                ['name' => 'wife_name', 'label' => 'Nama istri'],
+                ['name' => 'children_names', 'label' => 'Nama anak', 'type' => 'name-list'],
+                ['name' => 'siblings_names', 'label' => 'Nama saudara', 'type' => 'name-list'],
+                ['name' => 'membership_status', 'label' => 'Status keanggotaan', 'type' => 'select', 'options' => CongregationMembershipStatus::options()],
+                ['name' => 'joined_at', 'label' => 'Tanggal bergabung', 'type' => 'date'],
+                ['name' => 'is_serving', 'label' => 'Pelayanan', 'type' => 'ministry', 'options' => MinistryUnit::options()],
+                ['name' => 'notes', 'label' => 'Catatan tambahan', 'type' => 'textarea'],
+                ['name' => 'profile_photo', 'label' => 'Foto profil', 'type' => 'file', 'preview_url' => $item->exists ? $item->profilePhotoUrl() : null],
+                ['name' => 'is_active', 'label' => 'Jemaat aktif', 'type' => 'checkbox', 'value' => $item->exists ? $item->is_active : true],
+            ],
+        ]);
     }
 }

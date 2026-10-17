@@ -5,7 +5,7 @@
     $hasError = $errors->has($errorKey);
 @endphp
 <div>
-    @if ($label)<label for="{{ $fieldId }}" class="mb-2 block text-sm font-bold">{{ $label }}@if($attributes->has('required')) <span class="text-signal" aria-hidden="true">*</span>@endif</label>@endif
+    @if ($label)<label for="{{ $fieldId }}" class="mb-2 block text-sm font-bold">{{ $label }}@if($attributes->get('required')) <span class="text-signal" aria-hidden="true">*</span>@endif</label>@endif
     <select id="{{ $fieldId }}" name="{{ $name }}" @if($hasError) aria-invalid="true" aria-describedby="{{ $fieldId }}-error" @endif {{ $attributes->class('form-control') }}>{{ $slot }}</select>
     @error($errorKey)<p id="{{ $fieldId }}-error" class="mt-2 text-sm text-signal" role="alert">{{ $message }}</p>@enderror
 </div>

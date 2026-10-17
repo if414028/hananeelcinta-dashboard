@@ -21,6 +21,7 @@ use App\Models\DataImport;
 use App\Models\FamilyAltar;
 use App\Models\PastorMessage;
 use App\Models\PrayerRequest;
+use App\Support\CongregationProfileFields;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -250,6 +251,8 @@ final class FirebaseImportService
             'legacy_profile_photo_url' => $this->firebaseProfileUrl($record['photoImageUrl'] ?? null, "congregations[{$legacyKey}].photoImageUrl", $warnings),
             'is_active' => ! $deleted,
         ];
+
+        $data = array_merge($data, CongregationProfileFields::extract($data['notes']));
 
         return $this->persist($existing, Congregation::class, $data, $dryRun);
     }
