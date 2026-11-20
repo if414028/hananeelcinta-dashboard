@@ -21,7 +21,7 @@ final class AdminAuthenticationTest extends TestCase
         $this->seed(RolePermissionSeeder::class);
     }
 
-    public function test_active_admin_can_login_and_reach_congregations(): void
+    public function test_active_admin_can_login_and_reach_dashboard(): void
     {
         $user = User::factory()->create(['password' => 'secret-password']);
         $user->assignRole('Admin');
@@ -29,11 +29,11 @@ final class AdminAuthenticationTest extends TestCase
         $this->post(route('admin.login.store'), [
             'email' => $user->email,
             'password' => 'secret-password',
-        ])->assertRedirect(route('admin.congregations.index'));
+        ])->assertRedirect(route('admin.dashboard'));
 
         $this->assertAuthenticatedAs($user);
         $this->get(route('admin.congregations.index'))->assertOk();
-        $this->get(route('admin.dashboard'))->assertForbidden();
+        $this->get(route('admin.dashboard'))->assertOk();
         $this->assertNotNull($user->fresh()->last_login_at);
     }
 
@@ -42,9 +42,31 @@ final class AdminAuthenticationTest extends TestCase
         $user = User::factory()->create(['password' => 'secret-password']);
         $user->assignRole('Admin');
 
+        $this->get(route('admin.roles.index'))->assertRedirect(route('admin.login'));
+        $this->post(route('admin.login.store'), ['email' => $user->email, 'password' => 'secret-password'])
+            ->assertRedirect(route('admin.dashboard'));
+    }
+
+    public function test_admin_login_preserves_an_intended_dashboard_url(): void
+    {
+        $user = User::factory()->create(['password' => 'secret-password']);
+        $user->assignRole('Admin');
+        $url = route('admin.dashboard', ['source' => 'bookmark']);
+
+        $this->get($url)->assertRedirect(route('admin.login'));
+        $this->post(route('admin.login.store'), ['email' => $user->email, 'password' => 'secret-password'])
+            ->assertRedirect($url);
+        $this->get($url)->assertOk();
+    }
+
+    public function test_pastor_login_skips_an_intended_dashboard_url(): void
+    {
+        $user = User::factory()->create(['password' => 'secret-password']);
+        $user->assignRole('Pastor');
+
         $this->get(route('admin.dashboard'))->assertRedirect(route('admin.login'));
         $this->post(route('admin.login.store'), ['email' => $user->email, 'password' => 'secret-password'])
-            ->assertRedirect(route('admin.congregations.index'));
+            ->assertRedirect(route('admin.prayer-requests.index'));
     }
 
     public function test_inactive_admin_cannot_login(): void

@@ -8,6 +8,7 @@ final class AdminAccess
 {
     /** @var list<string> */
     public const ADMIN_PERMISSIONS = [
+        'dashboard.view',
         'congregations.view', 'congregations.create', 'congregations.update', 'congregations.delete', 'congregations.export',
         'prayer_requests.view', 'prayer_requests.view_confidential', 'prayer_requests.update', 'prayer_requests.delete', 'prayer_requests.export',
         'family_altars.view', 'family_altars.create', 'family_altars.update', 'family_altars.delete',
@@ -19,6 +20,6 @@ final class AdminAccess
 
     public static function isSuperAdminPermission(string $permission): bool
     {
-        return in_array(explode('.', $permission)[0], ['dashboard', 'admins', 'settings', 'audit_logs'], true);
+        return in_array(explode('.', $permission)[0], ['admins', 'settings', 'audit_logs'], true);
     }
 }

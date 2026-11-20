@@ -33,7 +33,7 @@ Route::middleware('guest')->group(function (): void {
 Route::middleware(['auth', 'active'])->group(function (): void {
     Route::get('/', fn (Request $request) => redirect()->route($request->user()->adminHomeRoute()));
     Route::get('/dashboard', DashboardController::class)
-        ->middleware(['role:Super Admin', 'permission:dashboard.view'])->name('dashboard');
+        ->middleware(['role:Super Admin|Admin', 'permission:dashboard.view'])->name('dashboard');
 
     Route::resource('admin-users', AdminUserController::class)->parameters(['admin-users' => 'adminUser'])
         ->middleware('role:Super Admin')->middlewareFor(['index', 'show'], 'permission:admins.view')->middlewareFor(['create', 'store'], 'permission:admins.create')->middlewareFor(['edit', 'update'], 'permission:admins.update')->middlewareFor('destroy', 'permission:admins.delete');

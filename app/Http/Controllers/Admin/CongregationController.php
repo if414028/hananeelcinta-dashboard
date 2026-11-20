@@ -16,6 +16,7 @@ use App\Http\Requests\Admin\UpdateCongregationRequest;
 use App\Models\Congregation;
 use App\Services\ImageUploadService;
 use App\Support\CongregationProfileFields;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -29,9 +30,9 @@ final class CongregationController extends Controller
     {
         $sort = in_array($request->sort, ['full_name', 'member_number', 'joined_at', 'created_at'], true) ? $request->sort : 'created_at';
         $direction = $request->direction === 'asc' ? 'asc' : 'desc';
-        $items = Congregation::query()->when($request->filled('search'), fn ($q) => $q->where(fn ($q) => $q->where('full_name', 'like', '%'.$request->search.'%')->orWhere('member_number', 'like', '%'.$request->search.'%')->orWhere('phone_number', 'like', '%'.$request->search.'%')->orWhere('whatsapp_number', 'like', '%'.$request->search.'%')->orWhere('email', 'like', '%'.$request->search.'%')))->when($request->filled('gender'), fn ($q) => $q->where('gender', $request->gender))->when($request->filled('membership_status'), fn ($q) => $q->where('membership_status', $request->membership_status))->when($request->filled('ministry_unit'), fn ($q) => $q->where('ministry_unit', $request->ministry_unit))->orderBy($sort, $direction)->paginate(15)->withQueryString();
+        $items = $this->filteredQuery($request)->orderBy($sort, $direction)->paginate(15)->withQueryString();
 
-        return view('admin.resources.index', ['title' => 'Data Jemaat', 'routeBase' => 'admin.congregations', 'createPermission' => 'congregations.create', 'exportPermission' => 'congregations.export', 'items' => $items, 'columns' => ['member_number' => 'NIJ', 'name' => 'Nama'], 'rows' => $items->through(fn ($i) => ['id' => $i->id, 'member_number' => $i->member_number, 'name' => $i->full_name, 'profile_photo_url' => $i->profilePhotoUrl()]), 'filters' => [['name' => 'gender', 'label' => 'Gender', 'options' => CongregationGender::options()], ['name' => 'membership_status', 'label' => 'Status', 'options' => CongregationMembershipStatus::options()], ['name' => 'ministry_unit', 'label' => 'Unit Pelayanan', 'options' => MinistryUnit::options()]]]);
+        return view('admin.resources.index', ['title' => 'Data Jemaat', 'routeBase' => 'admin.congregations', 'createPermission' => 'congregations.create', 'exportPermission' => 'congregations.export', 'items' => $items, 'columns' => ['member_number' => 'NIJ', 'name' => 'Nama'], 'rows' => $items->through(fn ($i) => ['id' => $i->id, 'member_number' => $i->member_number, 'name' => $i->full_name, 'profile_photo_url' => $i->profilePhotoUrl()]), 'filters' => [['name' => 'gender', 'label' => 'Gender', 'options' => CongregationGender::options()], ['name' => 'membership_status', 'label' => 'Status', 'options' => CongregationMembershipStatus::options()], ['name' => 'ministry_unit', 'label' => 'Unit Pelayanan', 'options' => MinistryUnit::options()], ['name' => 'age_group', 'label' => 'Kelompok Usia', 'options' => ['youth' => 'Youth (0–35 tahun)']]]]);
     }
 
     public function create(): View
@@ -141,16 +142,33 @@ final class CongregationController extends Controller
         return redirect()->route('admin.congregations.index')->with('success', 'Data jemaat berhasil dihapus.');
     }
 
-    public function export(): StreamedResponse
+    public function export(Request $request): StreamedResponse
     {
-        abort_unless(request()->user()->can('congregations.export'), 403);
+        abort_unless($request->user()->can('congregations.export'), 403);
 
-        return response()->streamDownload(function () {
+        return response()->streamDownload(function () use ($request) {
             $out = fopen('php://output', 'w');
             fputcsv($out, ['Nomor Induk Jemaat', 'Nama', 'Gender', 'Telepon', 'WhatsApp', 'Email', 'Status']);
-            Congregation::query()->orderBy('id')->chunk(500, fn ($rows) => $rows->each(fn ($i) => fputcsv($out, [$i->member_number, $i->full_name, $i->gender->label(), $i->phone_number, $i->whatsapp_number, $i->email, $i->membership_status->label()])));
+            $this->filteredQuery($request)->orderBy('id')->chunk(500, fn ($rows) => $rows->each(fn ($i) => fputcsv($out, [$i->member_number, $i->full_name, $i->gender->label(), $i->phone_number, $i->whatsapp_number, $i->email, $i->membership_status->label()])));
             fclose($out);
         }, 'jemaat-'.now()->format('Ymd').'.csv');
+    }
+
+    private function filteredQuery(Request $request): Builder
+    {
+        return Congregation::query()
+            ->when($request->filled('search'), fn ($q) => $q->where(fn ($q) => $q
+                ->where('full_name', 'like', '%'.$request->search.'%')
+                ->orWhere('member_number', 'like', '%'.$request->search.'%')
+                ->orWhere('phone_number', 'like', '%'.$request->search.'%')
+                ->orWhere('whatsapp_number', 'like', '%'.$request->search.'%')
+                ->orWhere('email', 'like', '%'.$request->search.'%')))
+            ->when($request->filled('gender'), fn ($q) => $q->where('gender', $request->gender))
+            ->when($request->filled('membership_status'), fn ($q) => $q->where('membership_status', $request->membership_status))
+            ->when($request->filled('ministry_unit'), fn ($q) => $q->where('ministry_unit', $request->ministry_unit))
+            ->when($request->input('age_group') === 'youth', fn ($q) => $q
+                ->whereDate('date_of_birth', '>', today()->subYearsNoOverflow(36)->toDateString())
+                ->whereDate('date_of_birth', '<=', today()->toDateString()));
     }
 
     private function form(Congregation $item, string $title): View

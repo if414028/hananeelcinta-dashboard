@@ -15,7 +15,9 @@
             <button type="button" class="grid h-11 w-11 place-items-center rounded-full border border-ink/15 lg:hidden" @click="navOpen = false"><span class="sr-only">Tutup navigasi</span><x-icon name="close"/></button>
         </div>
         <nav class="space-y-1">
-            @role('Super Admin')<a href="{{ route('admin.dashboard') }}" @class(['admin-nav-link','admin-nav-link-active'=>request()->routeIs('admin.dashboard')]) @if(request()->routeIs('admin.dashboard')) aria-current="page" @endif><x-icon name="home" class="admin-nav-icon"/>Dashboard</a>@endrole
+            @hasanyrole('Super Admin|Admin')
+                @can('dashboard.view')<a href="{{ route('admin.dashboard') }}" @class(['admin-nav-link','admin-nav-link-active'=>request()->routeIs('admin.dashboard')]) @if(request()->routeIs('admin.dashboard')) aria-current="page" @endif><x-icon name="home" class="admin-nav-icon"/>Dashboard</a>@endcan
+            @endhasanyrole
             <p class="px-4 pb-2 pt-6 text-[.68rem] font-semibold uppercase tracking-[.12em] text-slate">Pelayanan</p>
             @can('congregations.view')<a href="{{ route('admin.congregations.index') }}" @class(['admin-nav-link','admin-nav-link-active'=>request()->routeIs('admin.congregations.*')])><x-icon name="users" class="admin-nav-icon"/>Jemaat</a>@endcan
             @can('prayer_requests.view')<a href="{{ route('admin.prayer-requests.index') }}" @class(['admin-nav-link','admin-nav-link-active'=>request()->routeIs('admin.prayer-requests.*')])><x-icon name="heart" class="admin-nav-icon"/>Prayer Request</a>@endcan

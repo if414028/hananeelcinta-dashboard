@@ -39,7 +39,7 @@ class User extends Authenticatable
 
     public function adminHomeRoute(): string
     {
-        if ($this->hasRole('Super Admin')) {
+        if ($this->hasAnyRole(['Super Admin', 'Admin']) && $this->can('dashboard.view')) {
             return 'admin.dashboard';
         }
 

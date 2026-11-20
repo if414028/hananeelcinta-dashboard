@@ -44,7 +44,10 @@ final class AuthenticatedSessionController extends Controller
         activity('authentication')->causedBy($user)->event('login')->log('Admin login');
 
         $intendedPath = parse_url((string) $request->session()->get('url.intended', ''), PHP_URL_PATH) ?? '';
-        if (! $user->hasRole('Super Admin') && preg_match('~/admin/(dashboard|admin-users|roles|settings|audit-logs)(/|$)~', $intendedPath)) {
+        if (! $user->hasRole('Super Admin') && preg_match('~/admin/(admin-users|roles|settings|audit-logs)(/|$)~', $intendedPath)) {
+            $request->session()->forget('url.intended');
+        }
+        if (preg_match('~/admin/dashboard(/|$)~', $intendedPath) && (! $user->hasAnyRole(['Super Admin', 'Admin']) || ! $user->can('dashboard.view'))) {
             $request->session()->forget('url.intended');
         }
 
